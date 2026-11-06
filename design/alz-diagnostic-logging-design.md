@@ -36,7 +36,9 @@ The Azure platform follows the ALZ architecture, implemented with Azure Verified
 - The **platform team** is responsible for ALZ and governance, Azure Policy and policy assignments, centralised monitoring and operational logging, and platform automation.
 - The **security team** is responsible for security monitoring, incident detection and investigation, and Microsoft Sentinel.
 
-The default AVM ALZ implementation sends diagnostic data from all ALZ policy assignments to a single central Log Analytics workspace. ALZ recently introduced a dedicated Security management group and subscription beneath the Platform management group. **[Confirmed]** The security subscription is intentionally empty: ALZ deploys no security workspace and no Microsoft Sentinel into it, and no upstream routing model exists for a separate security workspace (Azure/Enterprise-Scale discussions #1898 and #1978). Routing between a management and a security workspace is therefore a local design decision.
+The default AVM ALZ implementation sends diagnostic data from all ALZ policy assignments to a single central Log Analytics workspace. ALZ has more recently [introduced](https://techcommunity.microsoft.com/blog/azuregovernanceandmanagementblog/a-new-platform-management-group--subscription-for-security-in-azure-landing-zone/4433287) (July 15, 2025) a dedicated Security management group and subscription beneath the Platform management group.
+
+The security subscription is intentionally empty: ALZ deploys no security workspace and no Microsoft Sentinel into it, and no upstream routing model exists for a separate security workspace (Azure/Enterprise-Scale discussions [#1898](https://github.com/Azure/Enterprise-Scale/discussions/1898) and [#1978](https://github.com/Azure/Enterprise-Scale/discussions/1978)). Routing between a management and a security workspace is therefore a local design decision, however the general consensus is the need for separate workspaces for operational and security logging.
 
 ## 1.3 Scope
 
@@ -288,7 +290,7 @@ Two workspaces exist, but one repository and one team deploy all diagnostic sett
 | Operational complexity | Low | Medium | High |
 | Upstream drift effort | Low | Medium | Medium to high (two consumers) |
 
-**[Recommendation]** Alternative C is selected because security isolation and independent ownership are the two high-priority drivers, and only Alternative C meets both. The additional complexity is accepted and mitigated by explicit ownership rules and the routing inventory.
+Alternative C is selected because security isolation and independent ownership are the two high-priority drivers, and only Alternative C meets both. The additional complexity is accepted and mitigated by explicit ownership rules and the routing inventory.
 
 ### Default destination of the shared ALZ workspace parameter
 
@@ -316,7 +318,7 @@ The argument for option 2 is that an omitted assignment lands with security rath
 
 ### Placement and ownership
 
-The operational workspace is the existing workspace in the management subscription in the Platform management group (`alz-management`). The security workspace is placed in the Security subscription beneath the Security management group. **[Confirmed]** ALZ creates the Security management group and leaves the subscription empty; the workspace is created outside ALZ (A03). The Security management group hosts the workspace; it does not define routing (section 1.2).
+The operational workspace is the existing workspace in the management subscription in the Platform management group (`alz-management`). The security workspace is placed in the Security subscription beneath the Security management group.
 
 **DECISION DD02: The security workspace is placed in the Security subscription and is owned and administered by the security team**
 - The Security management group and subscription are the upstream-aligned location for security infrastructure.
@@ -332,7 +334,7 @@ The operational workspace is the existing workspace in the management subscripti
 
 ### Access control and data isolation
 
-**[Confirmed]** Azure Monitor supports workspace-level RBAC, resource-context access and table-level read access (R01). The design uses workspace-level separation as the primary boundary and does not depend on table-level RBAC for isolation between the teams.
+Azure Monitor supports workspace-level RBAC, resource-context access and table-level read access (R01). The design uses workspace-level separation as the primary boundary and does not depend on table-level RBAC for isolation between the teams.
 
 | Aspect | Operational workspace | Security workspace |
 |--------|-----------------------|--------------------|
@@ -361,7 +363,6 @@ Retention is defined per workspace and per data purpose, based on the following 
 | Forensic or compliance retention | Data retained longer for audit or regulation, not used continuously | Security (retention values and tiering by the security team) |
 | Operational telemetry | Logs for reliability, performance and troubleshooting | Operational |
 
-**[Confirmed]** A Sentinel-enabled workspace includes three months of free retention instead of 31 days (R01). Retention values are not defined in this document (OQ03).
 
 **DECISION SEC08: Retention is defined independently for the operational and the security workspace, and the security workspace distinguishes detection, investigation and forensic or compliance retention**
 - Operational and security data have different retention, investigation and compliance needs (REQ-03).
@@ -414,7 +415,7 @@ The lists are examples, not fixed exclusions. **[Assumption]** Each item require
 
 ### Resources that require logging in both workspaces
 
-**[Confirmed]** A diagnostic setting can define at most one destination of each type, so sending to two Log Analytics workspaces requires two diagnostic settings, and a resource supports at most five diagnostic settings (R03).
+A diagnostic setting can define at most one destination of each type, so sending to two Log Analytics workspaces requires two diagnostic settings, and a resource supports at most five diagnostic settings (R03).
 
 For a resource that must reach both workspaces:
 
@@ -422,7 +423,7 @@ For a resource that must reach both workspaces:
 2. Each setting selects only the categories that its owner requires.
 3. The inventory records both routes and their owners (MON04).
 
-For the subscription Activity Log, the platform repository keeps the library assignment `Deploy-AzActivity-Log` routed to the operational workspace through the shared default. The security repository creates a second route to the security workspace. **[Assumption]** The upstream Activity Log definition uses a fixed diagnostic setting name; if so, a second assignment of the same definition overwrites the first. In that case the security route uses a custom variant with a distinct name or a directly managed subscription diagnostic setting in the security repository. This is verified against the pinned library version (section 5).
+For the subscription Activity Log, the platform repository keeps the library assignment `Deploy-AzActivity-Log` routed to the operational workspace through the shared default. The security repository creates a second route to the security workspace. The upstream Activity Log definition uses a fixed diagnostic setting name. A second assignment of the same definition therefore gives an error. To work around this, the security route uses a custom variant with a distinct assignment name.
 
 **DECISION MON02: Activity Logs are routed to both workspaces through two routes, each with one owning repository and a distinct diagnostic setting name**
 - Activity Logs support both operational and security use cases (REQ-10).
@@ -435,7 +436,7 @@ For the subscription Activity Log, the platform repository keeps the library ass
 
 ### ALZ Library consumption
 
-**[Confirmed]** The ALZ Library defines a shared default `log_analytics_workspace_id` that the ALZ provider applies to the following assignments (R04):
+The ALZ Library defines a shared default `log_analytics_workspace_id` that the ALZ provider applies to the following assignments (R04):
 
 | Policy assignment | Parameter | Purpose |
 |-------------------|-----------|---------|
@@ -470,7 +471,7 @@ Three mechanisms are used, in order of preference.
 
 #### The `allLogs` initiative
 
-**[Confirmed]** The built-in initiative `0884adba-2312-4468-abeb-5422caed1038` exposes a `resourceTypeList` parameter. Policy references for resource types outside the list are set to `Disabled`. For included types the `allLogs` category group is deployed. A category group is updated dynamically by Microsoft when categories are added (R02, R06). The initiative therefore selects resource types, not categories.
+The built-in initiative `0884adba-2312-4468-abeb-5422caed1038` exposes a `resourceTypeList` parameter. Policy references for resource types outside the list are set to `Disabled`. For included types the `allLogs` category group is deployed. A category group is updated dynamically by Microsoft when categories are added (R02, R06). The initiative therefore selects resource types, not categories.
 
 Consequences:
 
@@ -478,7 +479,6 @@ Consequences:
 - The effective categories can grow without a change in the repository (ADV02), which can raise ingestion in the Sentinel-billed workspace. The inventory records the resource types and the review on upgrade covers category group changes.
 - `allLogs` is not applied to all supported resource types by default. Each type in the list has a recorded security use case (SEC01).
 
-**[Confirmed]** The ALZ Library assignment `Deploy-Diag-LogsCat` correctly references the built-in `allLogs` initiative `0884adba-2312-4468-abeb-5422caed1038`.
 
 **DECISION SEC02: The built-in `allLogs` initiative with a curated `resourceTypeList` is assigned from the security repository for resource types where all log categories have a security use case**
 - The initiative is maintained upstream and avoids a custom initiative (REQ-06, REQ-07).
@@ -524,8 +524,6 @@ Both repositories pin the ALZ Library version. An upgrade follows this process:
 3. Compare custom derivatives with their upstream definitions.
 4. Verify that no policy is assigned from both repositories.
 5. Deploy to a non-production scope and verify resulting diagnostic settings and ingestion before broad assignment.
-
-**[Confirmed]** The April 2026 ALZ release notes state that several diagnostic and flow log policies were removed as superseded by built-ins, including the `Deploy-Diagnostics-LogAnalytics` initiative. The notes do not name `Deploy-Diag-LogsCat`. Its existence and its `logAnalytics` parameter are verified in the pinned version (ADV01).
 
 **DECISION DD06: ALZ Library and policy definition versions are pinned in each repository and every upgrade includes the upstream change review**
 - Pinning prevents silent changes to diagnostic behaviour (REQ-07, REQ-08).
@@ -582,7 +580,7 @@ Implementation conditions:
 **DECISION SEC05: `Deploy-AzSqlDb-Auditing` is owned by the security repository and SQL security audit events are routed to the security workspace**
 - SQL security audit events are a security signal.
 - SQL performance and troubleshooting categories remain in the operational workspace through operational policy.
-- **[Assumption]** The upstream SQL auditing definition uses a fixed diagnostic setting name (`SQLSecurityAuditEvents_3d229c42-c7e7-4c97-9a99-ec0d0d8b86c1`). Single ownership avoids a collision; if both workspaces require SQL audit events, a custom variant with a distinct name is used (DD05).
+- The upstream SQL auditing definition (version `1.0.2`) uses a fixed diagnostic setting name (`SQLSecurityAuditEvents_3d229c42-c7e7-4c97-9a99-ec0d0d8b86c1`). Single ownership avoids a collision; if both workspaces require SQL audit events, a custom variant with a distinct name is used (DD05).
 
 ☑ Security Impact: Prevents security audit events from being collected through operational configuration that security does not control. Establishes security-owned SQL audit collection.
 
@@ -673,7 +671,7 @@ Investigations that need operational context query the operational workspace und
 | Sentinel scope | All data in the security workspace is billed at Sentinel rates. Operational data is kept out of the workspace by SEC01 and MON01. |
 | Duplicated ingestion | Activity Logs and any dual-routed category are billed in both workspaces. Accepted (A05). |
 | Category group growth | `allLogs` can expand over time (ADV02); the inventory review includes category group changes. |
-| Commitment tiers | **[Confirmed]** Combining data in one workspace can reach a higher commitment tier with a larger discount (R01). Two workspaces forgo that combined discount (ADV03). Tiers are evaluated per workspace (out of scope). |
+| Commitment tiers | Combining data in one workspace can reach a higher commitment tier with a larger discount (R01). Two workspaces forgo that combined discount (ADV03). Tiers are evaluated per workspace (out of scope). |
 | Retention | Sentinel workspaces include three months of free retention (R01). Longer retention for forensic or compliance data is a cost item for the security team. |
 | Options for high-volume sources | Auxiliary Logs, ingestion-time transformations and the data lake are not covered and are open (OQ01). |
 
