@@ -206,15 +206,20 @@ The conceptual model has two data stores and two owners (figure C1).
 |--------|----------|----------------------|
 | Security isolation | High | Security telemetry and its access boundary are separate from ordinary platform operations. |
 | Independent security ownership | High | The security team controls the workspace, Sentinel and its policy assignments without depending on the platform release cycle. |
+| Delegated security operations | High | Security staff or a service provider can be granted access to security telemetry without also exposing unrelated operational data. |
 | Different retention requirements | Medium/High | Retention and lifecycle are set per workspace. |
-| Sentinel cost | Secondary | When Sentinel is enabled, all data in the workspace is billed at Sentinel rates, including operational data. A separate workspace keeps operational data out of Sentinel billing. |
+| Cost separation | Secondary | Sentinel pricing applies to all data in its enabled workspace, including operational data. A separate workspace keeps operational ingestion out of Sentinel billing; any duplicate ingestion for shared sources is assessed against that avoided cost. |
 
-**[Confirmed]** Microsoft Learn (R01) states that dedicated workspaces for Azure Monitor and Microsoft Sentinel allow segregation of data ownership between operational and security teams, that all data in a Sentinel-enabled workspace is subject to Sentinel pricing, and that the choice depends on the organisation's security requirements and cost implications. The same source describes a single combined workspace with table-level RBAC as a valid alternative. The CAF default of one central workspace is therefore not wrong in general; this design applies the documented exception for RBAC and data ownership, because independent security ownership is a high-priority requirement.
+A shared workspace places operational and security data within the same access and administration boundary. Separating teams within it depends on permissions and ongoing coordination, which can become more difficult when security operations are delegated to another team or service provider. A dedicated security workspace gives security data a distinct access and ownership boundary, while keeping operational data outside the Sentinel-enabled workspace. This separation has an ingestion trade-off: sources needed by both teams are sent to both workspaces, so duplication is evaluated alongside the cost and access requirements.
+
+> Microsoft Learn (R01) states that dedicated workspaces for Azure Monitor and Microsoft Sentinel allow segregation of data ownership between operational and security teams, that all data in a Sentinel-enabled workspace is subject to Sentinel pricing, and that the choice depends on the organisation's security requirements and cost implications. The same source describes a single combined workspace with table-level RBAC as a valid alternative.
+
+> The CAF default of one central workspace is therefore not wrong in general; this design applies the documented exception for RBAC and data ownership, because independent security ownership is a high-priority requirement.
 
 **DECISION DD01: Two central Log Analytics workspaces are used: an operational workspace owned by the platform team and a security workspace owned by the security team**
-- Security isolation and independent ownership are high-priority drivers that table-level RBAC in a single workspace addresses only with continuous coordination between the teams.
+- Security isolation, independent ownership and delegated security operations require a distinct access boundary for security telemetry.
 - Retention and lifecycle are set per workspace without dependencies between the teams.
-- Operational data stays outside Sentinel billing scope.
+- Operational data stays outside Sentinel billing scope; any duplicate ingestion is limited to sources needed by both teams.
 
 ☑ Security Impact: Prevents operational administrators and workloads from holding access to security telemetry through shared workspace permissions, and limits exposure of security data to the security team's access boundary. Establishes a separately administered data store for detection and investigation that remains under security control independent of platform changes.
 
