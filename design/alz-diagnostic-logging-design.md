@@ -17,7 +17,7 @@
 
 | Label | Meaning |
 |-------|---------|
-| **[Confirmed]** | Capability verified against Microsoft Learn (R01 to R03), or documented in the project notes (R07) from upstream repositories and release notes. Library-specific items are re-verified against the pinned version before implementation (section 5.1) |
+| **[Confirmed]** | Claim is supported by cited evidence listed in section 1.6. URLs and access dates identify the consulted source; version-specific library items are re-verified against the pinned version before implementation (section 5.1). |
 | **[Recommendation]** | Architectural choice made in this design |
 | **[Assumption]** | Statement that is not verified and must be confirmed before implementation (see section 5) |
 
@@ -85,15 +85,15 @@ The default AVM ALZ implementation sends diagnostic data from all ALZ policy ass
 
 ## 1.6 References
 
-| Ref | Source |
-|-----|--------|
-| R01 | Microsoft Learn: Design a Log Analytics workspace architecture (operational and security data) |
-| R02 | Microsoft Learn: Create diagnostic settings at scale by using Azure Policy (log category groups) |
-| R03 | Microsoft Learn: Diagnostic settings in Azure Monitor (destinations and limits) |
-| R04 | Azure Landing Zones Library, `alz_policy_default_values.json` and the policy assignments listed in section 4.3 |
-| R05 | Azure/Enterprise-Scale discussions #1898 and #1978 (security management group and subscription) |
-| R06 | Built-in initiative *Enable allLogs category group resource logging for supported resources to Log Analytics* (`0884adba-2312-4468-abeb-5422caed1038`) |
-| R07 | Project notes: `brainstorming\` and `summaries\` folders in this repository |
+| Ref | Source | Accessed |
+|-----|--------|----------|
+| R01 | [Microsoft Learn: Design a Log Analytics workspace architecture (operational and security data)](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/workspace-design#operational-and-security-data) | 2026-11-06 |
+| R02 | [Microsoft Learn: Create diagnostic settings at scale by using Azure Policy (log category groups)](https://learn.microsoft.com/en-us/azure/azure-monitor/data-collection/diagnostic-settings-policy) | 2026-11-06 |
+| R03 | [Microsoft Learn: Diagnostic settings in Azure Monitor (destinations and limits)](https://learn.microsoft.com/en-us/azure/azure-monitor/data-collection/diagnostic-settings) | 2026-11-06 |
+| R04 | [Azure Landing Zones Library](https://github.com/Azure/Azure-Landing-Zones-Library), `alz_policy_default_values.json` and the policy assignments listed in section 4.3 | 2026-11-06 |
+| R05 | Azure/Enterprise-Scale discussions [#1898](https://github.com/Azure/Enterprise-Scale/discussions/1898) and [#1978](https://github.com/Azure/Enterprise-Scale/discussions/1978) (security management group and subscription) | 2026-11-06 |
+| R06 | [Built-in initiative *Enable allLogs category group resource logging for supported resources to Log Analytics*](https://www.azadvertizer.net/azpolicyinitiativesadvertizer/0884adba-2312-4468-abeb-5422caed1038.html) (`0884adba-2312-4468-abeb-5422caed1038`) | 2026-11-06 |
+| R07 | Recommendation from a Microsoft Customer Success Manager | Not publicly accessible |
 
 ---
 
@@ -192,6 +192,8 @@ Some sources serve both purposes. A source needed by both teams is sent to both 
 
 The conceptual model has two data stores and two owners (figure C1).
 
+![Two-workspace model](diagrams/C1-conceptual-overview.svg)
+
 - The **operational workspace** collects platform diagnostics and is administered by the platform team.
 - The **security workspace** collects security-relevant telemetry, hosts Microsoft Sentinel and is administered by the security team.
 - The workspaces are independent: neither depends on the other for ingestion, access control, retention or lifecycle. Data needed in both is delivered twice at the source rather than copied between workspaces.
@@ -228,6 +230,8 @@ The conceptual model has two data stores and two owners (figure C1).
 | Routing inventory | Co-maintains (platform entries) | Co-maintains (security entries) and holds reviewer rights on all entries |
 
 Figure C2 shows the responsibility model.
+
+![Responsibility model](diagrams/C2-responsibility-model.svg)
 
 ## 3.4 Independent repositories
 
@@ -368,6 +372,8 @@ Retention is defined per workspace and per data purpose, based on the following 
 ### Logical architecture
 
 Figure L1 shows the workspaces, subscriptions, policy assignment scopes and Sentinel.
+
+![Logical architecture](diagrams/L1-logical-architecture.svg)
 
 ## 4.2 Diagnostic logging strategy
 
@@ -529,6 +535,8 @@ Both repositories pin the ALZ Library version. An upgrade follows this process:
 
 Figure L2 shows the policy and repository flow.
 
+![Policy and repository flow](diagrams/L2-policy-and-repository-flow.svg)
+
 ## 4.4 Ownership and conflict prevention
 
 ### Ownership matrix
@@ -637,6 +645,8 @@ The default workspace value answers which workspace an assignment gets. The rout
 ☑ Security Impact: Prevents silently unrouted or misrouted security log sources after upstream changes. Establishes a reviewed, enforceable record of intended routing.
 
 Figure L3 shows the routing per log source.
+
+![Routing per log source](diagrams/L3-log-routing.svg)
 
 ## 4.6 Security monitoring and incident investigation
 
