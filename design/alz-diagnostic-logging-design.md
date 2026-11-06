@@ -17,7 +17,7 @@
 
 | Label | Meaning |
 |-------|---------|
-| **[Confirmed]** | Capability verified against Microsoft Learn (R01 to R03), or documented in the project notes (R08) from upstream repositories and release notes. Items from R08 are re-verified against the pinned library version before implementation (section 5.1) |
+| **[Confirmed]** | Capability verified against Microsoft Learn (R01 to R03), or documented in the project notes (R07) from upstream repositories and release notes. Library-specific items are re-verified against the pinned version before implementation (section 5.1) |
 | **[Recommendation]** | Architectural choice made in this design |
 | **[Assumption]** | Statement that is not verified and must be confirmed before implementation (see section 5) |
 
@@ -92,9 +92,8 @@ The default AVM ALZ implementation sends diagnostic data from all ALZ policy ass
 | R03 | Microsoft Learn: Diagnostic settings in Azure Monitor (destinations and limits) |
 | R04 | Azure Landing Zones Library, `alz_policy_default_values.json` and the policy assignments listed in section 4.3 |
 | R05 | Azure/Enterprise-Scale discussions #1898 and #1978 (security management group and subscription) |
-| R06 | Azure Landing Zones Library issue #291 (`Deploy-Diag-LogsCat` initiative reference) |
-| R07 | Built-in initiative *Enable allLogs category group resource logging for supported resources to Log Analytics* (`0884adba-2312-4468-abeb-5422caed1038`) |
-| R08 | Project notes: `brainstorming\` and `summaries\` folders in this repository |
+| R06 | Built-in initiative *Enable allLogs category group resource logging for supported resources to Log Analytics* (`0884adba-2312-4468-abeb-5422caed1038`) |
+| R07 | Project notes: `brainstorming\` and `summaries\` folders in this repository |
 
 ---
 
@@ -166,7 +165,7 @@ Each team deploys its own diagnostic settings through its own repository and its
 
 | ID | Advisory |
 |----|----------|
-| ADV01 | The ALZ Library is a moving upstream. The April 2026 library changes removed several diagnostic policies, and the `Deploy-Diag-LogsCat` initiative reference differs from its description (R06). The pinned library version must be inspected before implementation (section 5). |
+| ADV01 | The ALZ Library is a moving upstream. The April 2026 library changes removed several diagnostic policies. The pinned library version must be inspected before implementation (section 5). |
 | ADV02 | The `allLogs` category group is maintained by Microsoft and can gain categories over time. The ingestion volume of an assignment can grow without a change in either repository. |
 | ADV03 | Separation removes the possibility of a shared commitment tier discount across both workspaces (section 4.7). |
 
@@ -269,7 +268,7 @@ Two workspaces exist, but one repository and one team deploy all diagnostic sett
 
 | Aspect | Assessment |
 |--------|------------|
-| Advantages | Meets all high-priority drivers; security controls its own assignments, categories and lifecycle; the Microsoft solution architect engagement (R08) recommended separate workspaces, repositories and assignments; upstream library reuse is retained. |
+| Advantages | Meets all high-priority drivers; security controls its own assignments, categories and lifecycle; the Microsoft solution architect engagement (R07) recommended separate workspaces, repositories and assignments; upstream library reuse is retained. |
 | Disadvantages | Duplicated assignments for sources needed in both workspaces; risk of conflicting diagnostic settings on the same resource; two policy lifecycles to track against upstream; dual Activity Log ingestion cost; additional governance (routing inventory, CI check). |
 | Fit to requirements | Meets REQ-01 to REQ-11 provided the controls in section 4 are implemented. |
 
@@ -325,7 +324,7 @@ The operational workspace is the existing workspace in the management subscripti
 **DECISION DD03: Microsoft Sentinel is enabled on the security workspace only**
 - All data in a Sentinel-enabled workspace is billed at Sentinel rates (section 3.2).
 - Operational data therefore remains outside Sentinel billing scope.
-- Sentinel and Defender for Cloud data are kept together in the security workspace, as advised by Microsoft (R08).
+- Sentinel and Defender for Cloud data are kept together in the security workspace, as advised by Microsoft (R07).
 
 ### Access control and data isolation
 
@@ -465,7 +464,7 @@ Three mechanisms are used, in order of preference.
 
 #### The `allLogs` initiative
 
-**[Confirmed]** The built-in initiative `0884adba-2312-4468-abeb-5422caed1038` exposes a `resourceTypeList` parameter. Policy references for resource types outside the list are set to `Disabled`. For included types the `allLogs` category group is deployed. A category group is updated dynamically by Microsoft when categories are added (R02, R07). The initiative therefore selects resource types, not categories.
+**[Confirmed]** The built-in initiative `0884adba-2312-4468-abeb-5422caed1038` exposes a `resourceTypeList` parameter. Policy references for resource types outside the list are set to `Disabled`. For included types the `allLogs` category group is deployed. A category group is updated dynamically by Microsoft when categories are added (R02, R06). The initiative therefore selects resource types, not categories.
 
 Consequences:
 
@@ -473,7 +472,7 @@ Consequences:
 - The effective categories can grow without a change in the repository (ADV02), which can raise ingestion in the Sentinel-billed workspace. The inventory records the resource types and the review on upgrade covers category group changes.
 - `allLogs` is not applied to all supported resource types by default. Each type in the list has a recorded security use case (SEC01).
 
-**[Assumption]** The library assignment `Deploy-Diag-LogsCat` describes `allLogs` but was reported to reference initiative `f5b29bc4-feca-4cc6-a58a-772dd5e290a5`, which corresponds to the `audit` category group (R06). The initiative ID actually referenced by the pinned library version is verified before the assignment is reused (A07).
+**[Confirmed]** The ALZ Library assignment `Deploy-Diag-LogsCat` correctly references the built-in `allLogs` initiative `0884adba-2312-4468-abeb-5422caed1038`.
 
 **DECISION SEC02: The built-in `allLogs` initiative with a curated `resourceTypeList` is assigned from the security repository for resource types where all log categories have a security use case**
 - The initiative is maintained upstream and avoids a custom initiative (REQ-06, REQ-07).
@@ -559,7 +558,7 @@ Figure L2 shows the policy and repository flow.
 
 **DECISION SEC04: The Defender for Cloud assignments `Deploy-MDFC-Config-H224` and `Deploy-MDFC-DefSQL-AMA` are owned by the security repository**
 - Defender for Cloud data is not required in the operational workspace.
-- Microsoft advises keeping Sentinel and Defender for Cloud data in the same workspace (R08).
+- Microsoft advises keeping Sentinel and Defender for Cloud data in the same workspace (R07).
 - `Deploy-MDFC-Config-H224` also contains the security contact and export resource group parameters, so the security team owns the whole assignment, not only the destination.
 
 Implementation conditions:
@@ -692,11 +691,11 @@ Investigations that need operational context query the operational workspace und
 
 ## 5.1 Verification items before implementation
 
-These items are assumptions or reported observations and are verified against the pinned library version and Azure Policy definitions.
+These items are validation checks for the pinned library version and Azure Policy definitions.
 
 | ID | Item | Impact if different |
 |----|------|---------------------|
-| A07 | `Deploy-Diag-LogsCat` and its `logAnalytics` parameter exist in the pinned library, and the referenced initiative ID is known (`allLogs` versus `audit`, R06). | Assignment reuse or replacement by the built-in initiative. |
+| A07 | `Deploy-Diag-LogsCat` and its `logAnalytics` parameter exist in the pinned library and reference the `allLogs` initiative. | Assignment reuse and configuration depend on the pinned version. |
 | A08 | Each included resource type and category has a use case confirmed by the security team (SEC01). | Increased ingestion or gaps in coverage. |
 | A09 | The upstream Activity Log definition and the diagnostic setting policies use fixed setting names, or expose a name parameter. | Custom variant or direct diagnostic setting needed for the second route (DD05, MON02). |
 | A10 | The SQL auditing definition uses a fixed setting name (`SQLSecurityAuditEvents_...`). | Custom variant if both workspaces need SQL audit events (SEC05). |
