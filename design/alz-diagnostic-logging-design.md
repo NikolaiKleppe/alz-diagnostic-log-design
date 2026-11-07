@@ -103,7 +103,7 @@ The security subscription is intentionally empty: ALZ deploys no security worksp
 
 ## 2.1 Design in brief
 
-Two central Log Analytics workspaces are used. The **operational workspace** is owned by the platform team and receives platform observability and troubleshooting telemetry. The **security workspace** is owned by the security team, has Microsoft Sentinel enabled, and receives only log sources with a documented security use case.
+Two central Log Analytics workspaces are used. The **operational workspace** is owned by the platform team and receives platform observability and troubleshooting telemetry. The **security workspace** is owned by the security team, has Microsoft Sentinel enabled, and receives log sources with a documented security use case.
 
 Each team deploys its own diagnostic settings through its own repository and its own Azure Policy assignments. Both repositories consume the upstream ALZ Library and built-in Azure Policy definitions. Custom policy content is limited to documented, tracked derivatives. The rule that no policy assignment and no diagnostic setting is managed from both repositories is the central integrity constraint of the design. A reviewed routing inventory, enforced by a continuous integration (CI) check, makes the intended routing visible and detects upstream drift.
 
@@ -132,7 +132,7 @@ Each team deploys its own diagnostic settings through its own repository and its
 | DD03 | Microsoft Sentinel is enabled on the security workspace only. | 4.1 |
 | DD04 | The platform and security teams deploy through independent repositories that consume the upstream ALZ Library. | 3.4 |
 | MON01 | The operational workspace is the shared ALZ default destination (`log_analytics_workspace_id`); security routing is explicit. | 4.3 |
-| SEC01 | The security workspace receives only log sources that have a documented security use case. | 4.2 |
+| SEC01 | The security workspace receives log sources that have a documented security use case. | 4.2 |
 | MON02 | Activity Logs are routed to both workspaces through separate routes, each owned by one repository. | 4.2 |
 | SEC02 | The built-in `allLogs` initiative with a curated `resourceTypeList` is used for resource types where all log categories are justified. | 4.3 |
 | SEC03 | Individual upstream policy definitions are used where only selected categories are required. | 4.3 |
@@ -187,7 +187,7 @@ Diagnostic logging is divided by purpose of use, not by technical source.
 | Consumers | Platform team, service and application teams | Security team (SOC, incident response) |
 | Typical content | Performance and health categories, application and gateway access logs, execution logs | Control-plane activity, authentication and sign-in events, access to sensitive data and secrets, network threat and WAF events, security audit events, Defender for Cloud data |
 | Owner | Platform team | Security team |
-| Data scope rule | All platform diagnostics required for operations | Only sources with a documented security use case |
+| Data scope rule | All platform diagnostics required for operations | Sources with a documented security use case |
 | Retention driver | Troubleshooting window | Detection, investigation and forensic or compliance needs |
 
 Some sources serve both purposes. A source needed by both teams is sent to both workspaces through two independently owned routes. The classification is a design rule, not a technical property of the log: an operational log can be security-relevant during an investigation, and the security use case determines inclusion in the security workspace (SEC01).
@@ -414,7 +414,7 @@ The lists are examples, not fixed exclusions. **[Assumption]** Each item require
 | AKS Kubernetes API audit logs and control plane logs | Resource diagnostic settings | |
 | NSG flow logs | Flow log configuration | Where justified; out of scope for this document |
 
-**DECISION SEC01: The security workspace receives only log sources and categories that have a documented security use case**
+**DECISION SEC01: The security workspace receives log sources and categories that have a documented security use case**
 - Sentinel billing applies to all data in the security workspace, so unused data generates cost without detection value (section 3.2).
 - Resource-type-level or category-level inclusion with a recorded rationale keeps ingestion explicit.
 - The documented use case is recorded in the routing inventory.
