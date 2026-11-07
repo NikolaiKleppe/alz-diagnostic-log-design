@@ -577,7 +577,7 @@ The security repository uses the ALZ Library at its own pinned version, and depl
 
 Figure L2 shows the policy and repository flow.
 
-![Policy and repository flow](diagrams/L2-policy-and-repository-flow.svg)
+![Policy and repository flow](diagrams/L2-policy-repository-flow.svg)
 
 ## 4.4 Ownership and conflict prevention
 
@@ -735,7 +735,7 @@ Investigations that need operational context query the operational workspace und
 | Figure | File | Purpose |
 |--------|------|---------|
 | L1 | [L1-logical-architecture.drawio](./diagrams/L1-logical-architecture.drawio) | Workspaces, subscriptions, management groups, Sentinel |
-| L2 | [L2-policy-repository-flow.drawio](./diagrams/L2-policy-repository-flow.drawio) | Repositories, ALZ Library, policy assignments, managed identities |
+| L2 | [L2-policy-repository-flow.drawio](./diagrams/L2-policy-repository-flow.drawio) | Repositories, ALZ Library, policy definitions and assignments, managed identities |
 | L3 | [L3-log-routing.drawio](./diagrams/L3-log-routing.drawio) | Routing of log sources to workspaces and their owners |
 
 ---
