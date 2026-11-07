@@ -1,0 +1,72 @@
+{
+  "type": "Microsoft.Authorization/policyAssignments",
+  "apiVersion": "2022-06-01",
+  "name": "Sec-MDFC-Config",
+  "location": "${default_location}",
+  "identity": {
+    "type": "SystemAssigned"
+  },
+  "properties": {
+    "description": "Deploys Microsoft Defender for Cloud configuration, security contacts and continuous export to the security workspace. Decision SEC04. Replaces the library assignment Deploy-MDFC-Config-H224, which must be disabled in the platform repository first (DD07). The initiative is an ALZ-defined definition that must exist at the root scope (DD08, A15).",
+    "displayName": "Security: deploy Microsoft Defender for Cloud configuration",
+    "policyDefinitionId": "${root_scope}/providers/Microsoft.Authorization/policySetDefinitions/Deploy-MDFC-Config_20240319",
+    "enforcementMode": "Default",
+    "nonComplianceMessages": [
+      {
+        "message": "Microsoft Defender for Cloud and Security Contacts should be deployed."
+      }
+    ],
+    "parameters": {
+      "emailSecurityContact": {
+        "value": "${security_contact_email}"
+      },
+      "logAnalytics": {
+        "value": "${security_workspace_id}"
+      },
+      "ascExportResourceGroupName": {
+        "value": "${mdfc_export_resource_group_name}"
+      },
+      "ascExportResourceGroupLocation": {
+        "value": "${default_location}"
+      },
+      "enableAscForServers": {
+        "value": "Disabled"
+      },
+      "enableAscForServersVulnerabilityAssessments": {
+        "value": "Disabled"
+      },
+      "enableAscForSql": {
+        "value": "Disabled"
+      },
+      "enableAscForAppServices": {
+        "value": "Disabled"
+      },
+      "enableAscForStorage": {
+        "value": "Disabled"
+      },
+      "enableAscForContainers": {
+        "value": "Disabled"
+      },
+      "enableAscForKeyVault": {
+        "value": "Disabled"
+      },
+      "enableAscForSqlOnVm": {
+        "value": "Disabled"
+      },
+      "enableAscForArm": {
+        "value": "Disabled"
+      },
+      "enableAscForOssDb": {
+        "value": "Disabled"
+      },
+      "enableAscForCosmosDbs": {
+        "value": "Disabled"
+      },
+      "enableAscForCspm": {
+        "value": "Disabled"
+      }
+    },
+    "scope": "${root_scope}",
+    "notScopes": []
+  }
+}
