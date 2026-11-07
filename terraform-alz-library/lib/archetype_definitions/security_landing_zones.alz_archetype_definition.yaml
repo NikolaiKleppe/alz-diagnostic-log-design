@@ -1,0 +1,12 @@
+name: security_landing_zones
+
+# SEC04 and SEC05
+policy_assignments:
+  - Deploy-AzSqlDb-Auditing
+  - Deploy-MDFC-DefSQL-AMA
+
+policy_definitions: []
+
+policy_set_definitions: []
+
+role_definitions: []

@@ -1,0 +1,15 @@
+name: security_root
+
+# SEC02 and SEC04 are custom assignments. The MDFC initiative is a renamed copy of the ALZ definition (DD08),
+# because the platform-deployed definition is not part of this hierarchy.
+policy_assignments:
+  - Sec-Diag-AllLogs
+  - Sec-MDFC-Config
+
+policy_definitions:
+  - Sec-Deploy-ASC-SecurityContacts
+
+policy_set_definitions:
+  - Sec-Deploy-MDFC-Config_20240319
+
+role_definitions: []

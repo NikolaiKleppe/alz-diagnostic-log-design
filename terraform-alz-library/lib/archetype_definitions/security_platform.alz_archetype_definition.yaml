@@ -1,0 +1,11 @@
+name: security_platform
+
+# SEC04
+policy_assignments:
+  - Deploy-MDFC-DefSQL-AMA
+
+policy_definitions: []
+
+policy_set_definitions: []
+
+role_definitions: []

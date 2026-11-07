@@ -1,0 +1,12 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/Azure-Landing-Zones-Library/main/schemas/library_metadata.json",
+  "name": "security",
+  "display_name": "Security ALZ Library",
+  "description": "Security-team policy assignments for diagnostic logging, layered on the ALZ Library.",
+  "dependencies": [
+    {
+      "path": "platform/alz",
+      "ref": "2026.11.0"
+    }
+  ]
+}
