@@ -96,6 +96,8 @@ The security subscription is intentionally empty: ALZ deploys no security worksp
 | R05 | Azure/Enterprise-Scale discussions [#1898](https://github.com/Azure/Enterprise-Scale/discussions/1898) and [#1978](https://github.com/Azure/Enterprise-Scale/discussions/1978) (security management group and subscription) | 2026-11-06 |
 | R06 | [Built-in initiative *Enable allLogs category group resource logging for supported resources to Log Analytics*](https://www.azadvertizer.net/azpolicyinitiativesadvertizer/0884adba-2312-4468-abeb-5422caed1038.html) (`0884adba-2312-4468-abeb-5422caed1038`) | 2026-11-06 |
 | R07 | Recommendation from a Microsoft Customer Success Manager | Not publicly accessible |
+| R08 | [Microsoft Learn: Extend Microsoft Sentinel across workspaces and tenants](https://learn.microsoft.com/en-us/azure/sentinel/extend-sentinel-across-workspaces-tenants) | 2026-11-07 |
+| R09 | [Microsoft Learn: Query across resources with Azure Monitor](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/cross-workspace-query) | 2026-11-07 |
 
 ---
 
@@ -146,7 +148,7 @@ Each team deploys its own diagnostic settings through its own repository and its
 | SEC05 | `Deploy-AzSqlDb-Auditing` is owned by the security repository. | 4.4 |
 | SEC06 | Tenant-level logs (Microsoft Entra ID) are owned by the security repository. | 4.4 |
 | MON04 | A workspace routing inventory is the routing control and is enforced by a CI check. | 4.5 |
-| SEC07 | Workspace access is controlled per workspace; platform access to the security workspace is limited to what is documented in the inventory. | 4.1 |
+| SEC07 | Workspace access is controlled by each workspace owner; SOC users and CI/CD identities have standing read access to the operational workspace, while platform access to the security workspace is limited to documented, reviewed exceptions. | 4.1 |
 | SEC08 | Retention is defined per workspace and per data purpose. | 4.1 |
 
 ## 2.4 Traceability
@@ -177,7 +179,7 @@ Each team deploys its own diagnostic settings through its own repository and its
 
 # 3. Conceptual design
 
-Operational observability and security monitoring have distinct owners, access needs and retention drivers. A shared workspace separates them through permissions only, within one administration boundary, which requires continuous coordination between the teams and becomes harder when security operations are handled by a separate team or an external service provider that should only see security telemetry. A dedicated security workspace provides a distinct access and ownership boundary and keeps operational data outside Sentinel pricing. The trade-off is that sources needed by both teams are ingested twice. The following sections define this conceptual model; the logical design describes its implementation.
+Operational observability and security monitoring have distinct owners, access needs and retention drivers. A shared workspace separates them through permissions only, within one administration boundary, which requires continuous coordination between the teams and becomes harder when security operations are handled by a separate team or an external service provider. A dedicated security workspace provides a distinct access and ownership boundary and keeps operational data outside Sentinel pricing. SOC users and security CI/CD identities have read access to the operational workspace without administering it. The trade-off is that sources needed in both workspaces are ingested twice. The following sections define this conceptual model; the logical design describes its implementation.
 
 ## 3.1 Operational and security logging
 
@@ -202,7 +204,7 @@ The conceptual model has two data stores and two owners (figure C1).
 
 - The **operational workspace** collects platform diagnostics and is administered by the platform team.
 - The **security workspace** collects security-relevant telemetry, hosts Microsoft Sentinel and is administered by the security team.
-- The workspaces are independent: neither depends on the other for ingestion, access control, retention or lifecycle. Data needed in both is delivered twice at the source rather than copied between workspaces.
+- The workspaces are independently administered for ingestion, access control, retention and lifecycle. SOC access to operational context depends on the operational workspace and its access configuration. Data needed in both is delivered twice at the source rather than copied between workspaces.
 
 **Reasoning (drivers in priority order)**
 
@@ -210,7 +212,7 @@ The conceptual model has two data stores and two owners (figure C1).
 |--------|----------|----------------------|
 | Security isolation | High | Security telemetry and its access boundary are separate from ordinary platform operations. |
 | Independent security ownership | High | The security team controls the workspace, Sentinel and its policy assignments without depending on the platform release cycle. |
-| Separately staffed or outsourced security operations | High | Security staff or a service provider can be granted access to security telemetry without also exposing unrelated operational data. |
+| Separately staffed or outsourced security operations | High | Security telemetry has a distinct access boundary; SOC users and security CI/CD identities also receive read access to the operational workspace. |
 | Different retention requirements | Medium/High | Retention and lifecycle are set per workspace. |
 | Cost separation | Secondary | Sentinel pricing applies to all data in its enabled workspace, including operational data. A separate workspace keeps operational ingestion out of Sentinel billing; any duplicate ingestion for shared sources is assessed against that avoided cost. |
 
@@ -232,7 +234,7 @@ Permissions within a single workspace cannot provide that boundary without conti
 
 | Area | Platform team | Security team |
 |------|---------------|---------------|
-| Operational workspace | Owns, administers, retention, access | No standing access except as documented |
+| Operational workspace | Owns, administers, retention, access | SOC users and CI/CD identities have standing read access |
 | Security workspace | No standing access except as documented | Owns, administers, retention, access |
 | Microsoft Sentinel | None | Owns |
 | Operational diagnostic settings and policy assignments | Owns (platform repository) | Reviews routing inventory |
@@ -349,23 +351,24 @@ The operational workspace is the existing workspace in the management subscripti
 
 ### Access control and data isolation
 
-Azure Monitor supports workspace-level RBAC, resource-context access and table-level read access (R01). The design uses workspace-level separation as the primary boundary and does not depend on table-level RBAC for isolation between the teams.
+Azure Monitor supports workspace-level RBAC, resource-context access and table-level read access (R01). The design uses workspace-level separation as the primary boundary for security telemetry and does not depend on table-level RBAC for isolation between the teams. The platform team grants SOC users and security CI/CD identities standing read access to the operational workspace for operational context, including cross-workspace queries. This access does not confer operational workspace administration or write access.
 
 | Aspect | Operational workspace | Security workspace |
 |--------|-----------------------|--------------------|
 | Administrators | Platform team | Security team |
-| Readers | Platform team, service teams per access model of the platform | Security team (SOC, incident response) |
-| Cross-team access | Security: no standing access | Platform: no standing access |
+| Readers | Platform team, service teams per access model of the platform, SOC users and security CI/CD identities | Security team (SOC, incident response) |
+| Cross-team access | Security: standing read access for SOC users and security CI/CD identities | Platform: no standing access |
 | Break-glass or incident access | Documented in the routing inventory | Documented in the routing inventory |
 | Access to data from resource owners | Resource-context access as defined by the platform | Not granted by default |
 | Policy assignment identities | Write access to the operational workspace only for assignments owned by the platform repository | Write access to the security workspace only for assignments owned by the security repository |
 
-**DECISION SEC07: Access to each workspace is controlled by workspace-level role assignments owned by the workspace owner, and platform access to the security workspace is limited to documented, reviewed exceptions**
+**DECISION SEC07: Each workspace owner controls workspace access; SOC users and security CI/CD identities have standing read access to the operational workspace, and platform access to the security workspace is limited to documented, reviewed exceptions**
 - Workspace-level separation avoids the permission-management overhead of table-level RBAC across teams.
+- Standing read access allows the SOC to query operational context without requiring an incident-specific access exception; the platform team retains administration of the operational workspace.
 - Role assignments of policy managed identities follow the repository that owns the assignment, so a platform identity holds no write access to the security workspace.
-- Exceptions are recorded in the routing inventory, where both teams can review them.
+- Exceptions to the security workspace access model are recorded in the routing inventory, where both teams can review them.
 
-☑ Security Impact: Prevents unauthorised read or tamper access to security telemetry by platform administrators and automation identities. Establishes least-privilege access aligned with team ownership and provides an auditable exception list.
+☑ Security Impact: Limits platform access to security telemetry to authorised exceptions and grants the SOC read access to operational telemetry without operational workspace administration. Role assignments and exceptions are reviewed in line with workspace ownership.
 
 ### Retention and lifecycle
 
@@ -728,10 +731,12 @@ The design supports monitoring and investigation as follows:
 | Identity activity | Entra ID logs in the security workspace (SEC06) |
 | Defender for Cloud alerts and exports | Security workspace, owned by security (SEC04) |
 | Investigation timelines | Investigation data class with security-defined retention (SEC08) |
-| Operational context | Operational workspace remains available to the security team through a documented, reviewed access exception where an investigation requires it (SEC07) |
+| Operational context | SOC users and security CI/CD identities have standing read access to the operational workspace for investigation and cross-workspace queries (SEC07) |
 | Verification of collection | Routing inventory and post-deployment verification (MON04) |
 
-Investigations that need operational context query the operational workspace under the documented exception, or use targeted extension of the security routing for the affected resource types through the security repository.
+Investigations that need operational context can query the operational workspace directly or correlate data across workspaces using `workspace()` and `union` or `join` (R08, R09). This depends on the operational workspace's access, availability and retention. Targeted security routing remains available where a security use case requires data in the security workspace.
+
+Cross-workspace hunting does not require Sentinel to be enabled on the operational workspace. Scheduled cross-workspace Sentinel analytics rules have a separate constraint: Microsoft requires Sentinel to be enabled on every referenced workspace (R08). Under DD03, such rules cannot reference the operational workspace without revisiting that decision; detection data can instead be routed to the security workspace.
 
 ## 4.7 Cost and operational considerations
 
@@ -817,4 +822,4 @@ These items are validation checks for the pinned library version and Azure Polic
 | OQ02 | Final confirmation of the ownership of the Defender for Cloud assignments (SEC04) and `Deploy-AzSqlDb-Auditing` (SEC05), which follow the current leaning. | Platform, Security |
 | OQ03 | Retention values for operational, detection, investigation and forensic or compliance data (SEC08). | Platform, Security |
 | OQ04 | Which resource types enter the initial security `resourceTypeList` and which require individual definitions (SEC01, SEC02, SEC03). | Security |
-| OQ05 | Break-glass and investigation access model for operational data from the security team (SEC07). | Platform, Security |
+| OQ05 | Role assignments, provisioning and review of standing SOC user and security CI/CD read access to the operational workspace, and break-glass access arrangements (SEC07). | Platform, Security |
