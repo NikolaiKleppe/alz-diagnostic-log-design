@@ -64,7 +64,7 @@ The security subscription is intentionally empty: ALZ deploys no security worksp
 | ID | Assumption |
 |----|------------|
 | A01 | The platform and security teams use separate Git repositories and separate deployment pipelines. |
-| A02 | The platform repository deploys the ALZ Library policy definitions and initiatives at a pinned version through the AVM ALZ Terraform module. The security repository uses the ALZ Library at its own pinned version, deploys only the assignment files it needs and excludes the deployment of policy definitions and initiatives. |
+| A02 | The platform repository deploys the ALZ Library policy definitions and initiatives at a pinned version through the AVM ALZ Terraform module. The security repository creates its own policy assignments of those definitions through a Terraform configuration and does not deploy them again. |
 | A03 | The security workspace is created outside ALZ (for example through subscription vending) in the Security subscription beneath the Security management group. |
 | A04 | Microsoft Sentinel is enabled on the security workspace only. |
 | A05 | Both teams accept the additional ingestion cost of Activity Logs stored in two workspaces. |
@@ -216,7 +216,7 @@ The conceptual model has two data stores and two owners (figure C1).
 > Microsoft Learn (R01) states that dedicated workspaces for Azure Monitor and Microsoft Sentinel allow segregation of data ownership between operational and security teams, that all data in a Sentinel-enabled workspace is subject to Sentinel pricing, and that the choice depends on the organisation's security requirements and cost implications. The same source describes a single combined workspace with table-level RBAC as a valid alternative.
 The CAF default of one central workspace is therefore not wrong in general; this design applies the documented exception for RBAC and data ownership, because independent security ownership is a high-priority requirement.
 
-Two central Log Analytics workspaces are used: an operational workspace owned by the platform team and a security workspace owned by the security team. This is because the platform team and the security team have different responsibilities, consumers and retention needs for diagnostic data. Security isolation, independent ownership and separately staffed or outsourced security operations are high-priority drivers, and each requires an access boundary around security telemetry that is not shared with ordinary platform operations. 
+Two central Log Analytics workspaces are used: an operational workspace owned by the platform team and a security workspace owned by the security team. This is because the platform team and the security team have different responsibilities, consumers and retention needs for diagnostic data. Security isolation, independent ownership and separately staffed or outsourced security operations are high-priority drivers, and each requires an access boundary around security telemetry that is not shared with ordinary platform operations.
 
 Permissions within a single workspace cannot provide that boundary without continuous coordination between the teams. Retention and lifecycle are set per workspace, so separate workspaces remove the dependency between the teams on these settings. Sentinel pricing applies to all data in a Sentinel-enabled workspace; a dedicated security workspace therefore keeps operational data outside Sentinel billing. Only sources needed by both teams are ingested twice, which is accepted as the cost of the separation.
 
@@ -236,8 +236,7 @@ Permissions within a single workspace cannot provide that boundary without conti
 | Microsoft Sentinel | None | Owns |
 | Operational diagnostic settings and policy assignments | Owns (platform repository) | Reviews routing inventory |
 | Security diagnostic settings and policy assignments | Reviews routing inventory | Owns (security repository) |
-| ALZ Library, policy definitions and initiatives (deployment) | Owns (platform repository) | Consumes; reviews changes that affect security assignments |
-| ALZ Library version pinned for security assignments | None | Owns; aligned with the deployed definitions |
+| ALZ Library, policy definitions and initiatives (deployment and version) | Owns (platform repository) | Consumes; reviews changes that affect security assignments |
 | Custom policy variants needed for security (DD05) | Reviews | Owns (security repository) |
 | Routing inventory | Co-maintains (platform entries) | Co-maintains (security entries) and holds reviewer rights on all entries |
 
@@ -249,14 +248,14 @@ Figure C2 shows the responsibility model.
 
 The platform team owns and manages the ALZ Library and the policy definitions and initiatives it deploys. These are deployed once, from the existing ALZ repository, at the management group scope where the ALZ Library places them. The platform team also manages the operational diagnostic settings and policy assignments from this repository.
 
-The security team manages security diagnostic settings from a separate security repository. This repository calls the ALZ Library at its own pinned version and deploys only the policy assignments it needs, with deployment of definitions and initiatives excluded. The assignments reference the definitions and initiatives that the platform repository has already deployed, and the security team selects and configures the parameters, scopes and workspace destination of the assignments it owns. Policy definitions and initiatives are not deployed a second time, and the ALZ Library is not copied into a shared derivative.
+The security team manages security diagnostic settings from a separate security repository. This repository contains policy assignments only. The assignments reference the definitions and initiatives that the platform repository has already deployed, and the security team selects and configures the parameters, scopes and workspace destination of the assignments it owns. Policy definitions and initiatives are not deployed a second time, and the ALZ Library is not copied into a shared derivative.
 
-The exception is a definition or initiative that the security team needs but cannot reuse from the platform deployment. This applies when the definition is defined by the ALZ Library itself (not built into Azure), and either only exists in a newer library version than the platform has deployed, or differs from the deployed one in parameters or behaviour. The security team then deploys its own copy from its pinned library version, under a distinct name, instead of waiting for a platform upgrade (section 4.3, DD05). Built-in Azure Policy definitions and initiatives are not deployed by the ALZ Library, so they create no dependency on the platform team.
+The exception is a custom variant of an upstream definition, which is needed when the upstream definition cannot meet a security requirement (DD05). A custom variant is deployed from the repository of the team that needs it, under a distinct name, so that no definition or initiative is deployed twice under the same name.
 
 **DECISION DD04: The platform team owns and deploys the ALZ Library policy definitions and initiatives, and the platform and security teams deploy their policy assignments through independent repositories**
 - Policy definitions and initiatives are deployed once, which avoids duplicate definitions, version divergence and a second library lifecycle to maintain.
 - Independent security ownership requires that security assignments are not part of the platform deployment lifecycle. Only the assignment, not the definition, is separated.
-- The security repository depends on the platform repository for the availability and version of the ALZ-defined definitions it assigns. This dependency is limited to library-defined content, and a security-owned copy under a distinct name removes it where the platform version does not fit (section 4.3). The coordination mechanisms in sections 4.4 and 4.5 manage the remaining dependency and replace the coupling that a shared repository would provide.
+- The security repository depends on the platform repository for the availability and version of the definitions it assigns. The coordination mechanisms in sections 4.4 and 4.5 manage this dependency and replace the coupling that a shared repository would provide.
 
 ☑ Security Impact: Prevents platform pipeline changes or platform administrators from altering or removing security diagnostic policy assignments. Establishes a security-controlled change path for security log collection. The platform team still controls the definitions the assignments reference, which is why DD06 requires notification of the security team before library upgrades.
 
