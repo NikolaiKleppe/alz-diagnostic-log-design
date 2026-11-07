@@ -1,0 +1,25 @@
+# Terraform files
+*.tfstate
+*.tfstate.*
+.terraform/
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+*.tfplan
+
+# Sensitive files
+secrets.*.yaml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor directories
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.code-workspace
