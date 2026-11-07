@@ -64,7 +64,7 @@ The security subscription is intentionally empty: ALZ deploys no security worksp
 | ID | Assumption |
 |----|------------|
 | A01 | The platform and security teams use separate Git repositories and separate deployment pipelines. |
-| A02 | Both repositories consume the ALZ Library at a pinned version and apply it through the AVM ALZ Terraform module (platform) or an equivalent Terraform configuration (security). |
+| A02 | The platform repository deploys the ALZ Library policy definitions and initiatives at a pinned version through the AVM ALZ Terraform module. The security repository uses the ALZ Library at its own pinned version, deploys only the assignment files it needs and excludes the deployment of policy definitions and initiatives. |
 | A03 | The security workspace is created outside ALZ (for example through subscription vending) in the Security subscription beneath the Security management group. |
 | A04 | Microsoft Sentinel is enabled on the security workspace only. |
 | A05 | Both teams accept the additional ingestion cost of Activity Logs stored in two workspaces. |
@@ -105,7 +105,7 @@ The security subscription is intentionally empty: ALZ deploys no security worksp
 
 Two central Log Analytics workspaces are used. The **operational workspace** is owned by the platform team and receives platform observability and troubleshooting telemetry. The **security workspace** is owned by the security team, has Microsoft Sentinel enabled, and receives log sources with a documented security use case.
 
-Each team deploys its own diagnostic settings through its own repository and its own Azure Policy assignments. Both repositories consume the upstream ALZ Library and built-in Azure Policy definitions. Custom policy content is limited to documented, tracked derivatives. The rule that no policy assignment and no diagnostic setting is managed from both repositories is the central integrity constraint of the design. A reviewed routing inventory, enforced by a continuous integration (CI) check, makes the intended routing visible and detects upstream drift.
+Each team deploys its own diagnostic settings through its own repository and its own Azure Policy assignments. The platform team owns and deploys the upstream ALZ Library policy definitions and initiatives once, and the security repository only assigns them. Built-in Azure Policy definitions are used by both. Custom policy content is limited to documented, tracked derivatives. The rule that no policy assignment and no diagnostic setting is managed from both repositories is the central integrity constraint of the design. A reviewed routing inventory, enforced by a continuous integration (CI) check, makes the intended routing visible and detects upstream drift.
 
 ## 2.2 Requirements
 
@@ -130,14 +130,15 @@ Each team deploys its own diagnostic settings through its own repository and its
 | DD01 | Two central Log Analytics workspaces are used: operational and security. | 3.2 |
 | DD02 | The security workspace is placed in the Security subscription and is owned and administered by the security team. | 4.1 |
 | DD03 | Microsoft Sentinel is enabled on the security workspace only. | 4.1 |
-| DD04 | The platform and security teams deploy through independent repositories that consume the upstream ALZ Library. | 3.4 |
+| DD04 | The platform team owns and deploys the ALZ Library policy definitions and initiatives; the platform and security teams deploy their policy assignments through independent repositories. | 3.4 |
 | MON01 | The operational workspace is the shared ALZ default destination (`log_analytics_workspace_id`); security routing is explicit. | 4.3 |
 | SEC01 | The security workspace receives log sources that have a documented security use case. | 4.2 |
 | MON02 | Activity Logs are routed to both workspaces through separate routes, each owned by one repository. | 4.2 |
 | SEC02 | The built-in `allLogs` initiative with a curated `resourceTypeList` is used for resource types where all log categories are justified. | 4.3 |
 | SEC03 | Individual upstream policy definitions are used where only selected categories are required. | 4.3 |
 | DD05 | Custom policy definitions are limited to documented derivatives of upstream definitions. | 4.3 |
-| DD06 | ALZ Library and policy definition versions are pinned and upstream changes are reviewed on every upgrade. | 4.3 |
+| DD06 | The platform repository pins the library and deploys the definitions; the security repository pins the library for its assignments; every upgrade includes the upstream change review and notification of the security team. | 4.3 |
+| DD08 | The security team reuses platform-deployed ALZ definitions where identical, and deploys its own renamed copy where an ALZ-defined definition is missing or differs. | 4.3 |
 | MON03 | Diagnostic settings that coexist on a resource use distinct names per owner. | 4.4 |
 | DD07 | Every policy assignment and diagnostic setting has exactly one owning repository. | 4.4 |
 | SEC04 | The Defender for Cloud assignments are owned by the security repository. | 4.4 |
@@ -152,12 +153,12 @@ Each team deploys its own diagnostic settings through its own repository and its
 | Requirement | Decision(s) | Status |
 |-------------|-------------|--------|
 | REQ-01 | DD01, DD02, SEC07 | Fulfilled |
-| REQ-02 | DD02, DD03, DD04, SEC04, SEC05, SEC06 | Fulfilled |
+| REQ-02 | DD02, DD03, DD04, DD08, SEC04, SEC05, SEC06 | Fulfilled |
 | REQ-03 | DD01, SEC08 | Fulfilled (values open, OQ03) |
 | REQ-04 | DD03, SEC01, SEC02, SEC03 | Fulfilled |
 | REQ-05 | DD07, MON04 | Fulfilled |
 | REQ-06 | DD04, MON01, SEC02, SEC03 | Fulfilled |
-| REQ-07 | DD05, DD06, MON04 | Fulfilled |
+| REQ-07 | DD05, DD06, DD08, MON04 | Fulfilled |
 | REQ-08 | DD04, DD06, MON04 | Fulfilled |
 | REQ-09 | DD07, MON03, MON04 | Fulfilled |
 | REQ-10 | MON02 | Fulfilled (mechanism to verify, R03) |
@@ -235,8 +236,9 @@ Permissions within a single workspace cannot provide that boundary without conti
 | Microsoft Sentinel | None | Owns |
 | Operational diagnostic settings and policy assignments | Owns (platform repository) | Reviews routing inventory |
 | Security diagnostic settings and policy assignments | Reviews routing inventory | Owns (security repository) |
-| ALZ Library version for the platform repository | Owns | None |
-| ALZ Library version for the security repository | None | Owns |
+| ALZ Library, policy definitions and initiatives (deployment) | Owns (platform repository) | Consumes; reviews changes that affect security assignments |
+| ALZ Library version pinned for security assignments | None | Owns; aligned with the deployed definitions |
+| Custom policy variants needed for security (DD05) | Reviews | Owns (security repository) |
 | Routing inventory | Co-maintains (platform entries) | Co-maintains (security entries) and holds reviewer rights on all entries |
 
 Figure C2 shows the responsibility model.
@@ -245,14 +247,18 @@ Figure C2 shows the responsibility model.
 
 ## 3.4 Independent repositories
 
-The platform team manages operational diagnostic settings in the existing ALZ repository. The security team manages security diagnostic settings in a separate security repository. Both consume the upstream ALZ Library independently, which keeps the upstream library as the single source of policy definitions while each team selects and configures the assignments it owns. The ALZ Library is not copied into a shared derivative.
+The platform team owns and manages the ALZ Library and the policy definitions and initiatives it deploys. These are deployed once, from the existing ALZ repository, at the management group scope where the ALZ Library places them. The platform team also manages the operational diagnostic settings and policy assignments from this repository.
 
-**DECISION DD04: The platform and security teams deploy diagnostic policy assignments through independent repositories that each consume the upstream ALZ Library**
-- Independent security ownership requires that security assignments are not part of the platform deployment lifecycle.
-- Both repositories reuse the same upstream definitions, which limits custom policy maintenance.
-- The coordination mechanisms in sections 4.4 and 4.5 replace the coupling that a shared repository would provide.
+The security team manages security diagnostic settings from a separate security repository. This repository calls the ALZ Library at its own pinned version and deploys only the policy assignments it needs, with deployment of definitions and initiatives excluded. The assignments reference the definitions and initiatives that the platform repository has already deployed, and the security team selects and configures the parameters, scopes and workspace destination of the assignments it owns. Policy definitions and initiatives are not deployed a second time, and the ALZ Library is not copied into a shared derivative.
 
-☑ Security Impact: Prevents platform pipeline changes or platform administrators from altering or removing security diagnostic policy assignments. Establishes a security-controlled change path for security log collection.
+The exception is a definition or initiative that the security team needs but cannot reuse from the platform deployment. This applies when the definition is defined by the ALZ Library itself (not built into Azure), and either only exists in a newer library version than the platform has deployed, or differs from the deployed one in parameters or behaviour. The security team then deploys its own copy from its pinned library version, under a distinct name, instead of waiting for a platform upgrade (section 4.3, DD05). Built-in Azure Policy definitions and initiatives are not deployed by the ALZ Library, so they create no dependency on the platform team.
+
+**DECISION DD04: The platform team owns and deploys the ALZ Library policy definitions and initiatives, and the platform and security teams deploy their policy assignments through independent repositories**
+- Policy definitions and initiatives are deployed once, which avoids duplicate definitions, version divergence and a second library lifecycle to maintain.
+- Independent security ownership requires that security assignments are not part of the platform deployment lifecycle. Only the assignment, not the definition, is separated.
+- The security repository depends on the platform repository for the availability and version of the ALZ-defined definitions it assigns. This dependency is limited to library-defined content, and a security-owned copy under a distinct name removes it where the platform version does not fit (section 4.3). The coordination mechanisms in sections 4.4 and 4.5 manage the remaining dependency and replace the coupling that a shared repository would provide.
+
+☑ Security Impact: Prevents platform pipeline changes or platform administrators from altering or removing security diagnostic policy assignments. Establishes a security-controlled change path for security log collection. The platform team still controls the definitions the assignments reference, which is why DD06 requires notification of the security team before library upgrades.
 
 ## 3.5 Alternatives considered
 
@@ -283,7 +289,7 @@ Two workspaces exist, but one repository and one team deploy all diagnostic sett
 | Aspect | Assessment |
 |--------|------------|
 | Advantages | Meets all high-priority drivers; security controls its own assignments, categories and lifecycle; the Microsoft solution architect engagement (R07) recommended separate workspaces, repositories and assignments; upstream library reuse is retained. |
-| Disadvantages | Duplicated assignments for sources needed in both workspaces; risk of conflicting diagnostic settings on the same resource; two policy lifecycles to track against upstream; dual Activity Log ingestion cost; additional governance (routing inventory, CI check). |
+| Disadvantages | Duplicated assignments for sources needed in both workspaces; risk of conflicting diagnostic settings on the same resource; two assignment lifecycles that depend on one platform-managed library lifecycle; dual Activity Log ingestion cost; additional governance (routing inventory, CI check). |
 | Fit to requirements | Meets REQ-01 to REQ-11 provided the controls in section 4 are implemented. |
 
 ### Comparison
@@ -523,25 +529,55 @@ Initiative assignment effect overrides, which disable individual policy referenc
 - Custom policy increases maintenance and drift (REQ-07).
 - Derivatives with a rationale and comparison keep drift visible and reviewable.
 
+### Dependency on platform-deployed definitions
+
+The platform repository deploys the ALZ Library definitions and initiatives at its pinned version X. The security repository pins a version Y of the library for its assignments, and Y can be newer than X. The effect on a security assignment depends on the kind of definition it references.
+
+| Case | Example | Effect | Handling |
+|------|---------|--------|----------|
+| The definition is built into Azure Policy | `Deploy-Diag-LogsCat`, `Deploy-AzActivity-Log`, `Deploy-AzSqlDb-Auditing`, `Deploy-MDFC-DefSQL-AMA`, and the `allLogs` initiative and individual definitions of SEC02 and SEC03 | No dependency on the platform deployment. The definition exists in the tenant independent of the library version. | Assign directly from the security repository. |
+| The definition is defined by the ALZ Library and is identical in X and Y | The same custom definition in both versions | Reused from the platform deployment. | Assign and record the source in the inventory. |
+| The definition is defined by the ALZ Library and only exists in Y, or differs between X and Y | `Deploy-MDFC-Config_20240319` and its member `Deploy-ASC-SecurityContacts` for `Deploy-MDFC-Config-H224` | A missing definition fails the deployment. A changed parameter set fails the deployment. A changed behaviour behind an unchanged name changes collection without an error. | The security team deploys its own copy under a distinct name. |
+
+In the library version inspected on 2026-11-07 (commit `62cfa7f`, ALZ dependency 2026.11.0), the diagnostic and Defender assignments in section 4.3 all reference built-in definitions, except `Deploy-MDFC-Config-H224`. The `Deploy-Diagnostics-*` definitions that the library deploys are not referenced by any assignment or initiative in that version, and security does not build on them. The dependency on the platform deployment is therefore currently limited to the Defender for Cloud configuration (SEC04).
+
+A security-owned copy follows these rules, in addition to those in the previous section:
+
+| Rule | Description |
+|------|-------------|
+| Name | A distinct name with a security prefix, for example `Sec-Deploy-MDFC-Config_20240319`. The copy is deployed at the same scope as the platform-deployed definitions, so a name that matches an existing definition would collide with it |
+| References | A copied initiative references the copied member definitions, not the platform-deployed ones |
+| Scope | Deployed at the intermediate root management group, together with the other ALZ policy definitions, so that a security assignment at that scope covers the whole platform. A definition can only be assigned at its own scope or below |
+| Retirement | Removed when the platform deployment reaches an equivalent version and the assignment is switched back |
+
+**DECISION DD08: The security team reuses platform-deployed ALZ definitions where they are identical to the version it assigns, and deploys its own renamed copy where an ALZ-defined definition is missing or differs**
+- A hard dependency on the platform upgrade schedule for security log collection is avoided where it matters.
+- The copy is limited to ALZ-defined content. Built-in definitions need no copy.
+- The cost of the copy is small because the security team assigns a small number of initiatives, and the platform team continues to own the rest of the library.
+
+☑ Security Impact: Prevents the security team from being blocked by the platform team's library upgrade schedule, and prevents silent change in collection behaviour through a changed definition behind an unchanged name. Establishes a controlled, documented fallback for security-owned policy content.
+
 ### Versioning and drift
 
-Both repositories pin the ALZ Library version. An upgrade follows this process:
+The security repository uses the ALZ Library at its own pinned version, and deploys only the assignment files it needs. Deployment of policy definitions and initiatives is excluded in this repository. The security team therefore pins the library version to control which assignments it deploys, but it does not own the definitions. Its pinned version is kept aligned with the definitions the platform repository has deployed, because the assignments reference those definitions and their parameters. The platform team notifies the security team before every library upgrade that changes a definition or initiative the security repository assigns. An upgrade follows this process:
 
 1. Review new, removed and changed assignments, initiatives, definitions and workspace-dependent parameters in the target version.
-2. Update the routing inventory and Terraform configuration in the same change.
-3. Compare custom derivatives with their upstream definitions.
-4. Verify that no policy is assigned from both repositories.
-5. Deploy to a non-production scope and verify resulting diagnostic settings and ingestion before broad assignment.
+2. Notify the security team of changes to definitions or initiatives that security assignments reference, so that security can review the effect on its assignments before the upgrade is deployed.
+3. Update the pinned library version, routing inventory and Terraform configuration of each affected repository in the same change window, so that the security repository's pinned version stays aligned with the deployed definitions.
+4. Compare custom derivatives with their upstream definitions.
+5. Verify that no policy is assigned from both repositories.
+6. Deploy to a non-production scope and verify resulting diagnostic settings and ingestion before broad assignment.
 
-**DECISION DD06: ALZ Library and policy definition versions are pinned in each repository and every upgrade includes the upstream change review**
+**DECISION DD06: The platform repository pins the ALZ Library and deploys the definitions, the security repository pins the library for its assignments, and every upgrade includes the upstream change review and notification of the security team**
 - Pinning prevents silent changes to diagnostic behaviour (REQ-07, REQ-08).
 - Library changes affect workspace-dependent assignments and the routing inventory.
+- Security assignments depend on platform-deployed definitions. Notification before upgrade lets the security team review parameter changes, removed policies and category changes before they reach security log collection.
 
-☑ Security Impact: Prevents uncontrolled changes to security log collection through upstream updates. Establishes reviewed, versioned security policy content.
+☑ Security Impact: Prevents uncontrolled changes to security log collection through upstream updates. Establishes reviewed, versioned security policy content, with the security team informed of every change to the definitions it assigns.
 
 Figure L2 shows the policy and repository flow.
 
-![Policy and repository flow](diagrams/L2-policy-and-repository-flow.svg)
+![Policy and repository flow](diagrams/L2-policy-repository-flow.svg)
 
 ## 4.4 Ownership and conflict prevention
 
@@ -580,7 +616,7 @@ Implementation conditions:
 - The assignments are disabled or removed in the platform repository first (for example through the archetype or `DoNotEnforce`; the mechanism is verified for the module version).
 - `Deploy-MDFC-DefSQL-AMA` also depends on the AMA managed identity and Defender for SQL data collection rule defaults from the platform side; the receipt of these values is agreed between the teams.
 - Both assignments exist at several management group scopes; all scopes are covered.
-- The security team pins definition versions and reviews upstream changes (DD06).
+- The security team reviews the effect of platform library upgrades on the definitions it assigns (DD06).
 - This decision uses the current leaning and is to be confirmed (OQ02).
 
 ☑ Security Impact: Prevents Defender for Cloud export configuration from being changed by the platform team. Establishes security control over Defender for Cloud data and its destination.
@@ -602,8 +638,8 @@ Implementation conditions:
 
 | Change | Reviewers | Deployment |
 |--------|-----------|------------|
-| Platform repository: operational assignments, shared default, library upgrade | Platform team; security reviews routing inventory changes | Platform pipeline |
-| Security repository: security assignments, `resourceTypeList`, custom derivatives, library upgrade | Security team; platform reviews routing inventory changes and cross-repository naming conflicts | Security pipeline |
+| Platform repository: operational assignments, shared default, ALZ Library and policy definitions, library upgrade | Platform team; security reviews routing inventory changes and is notified of library upgrades (DD06) | Platform pipeline |
+| Security repository: security assignments, `resourceTypeList`, custom derivatives, pinned library version for its assignments | Security team; platform reviews routing inventory changes and cross-repository naming conflicts | Security pipeline |
 | Routing inventory | Both teams (security mandatory reviewer) | Merged with the related Terraform change |
 
 ## 4.5 Routing inventory as a control
@@ -621,6 +657,7 @@ The default workspace value answers which workspace an assignment gets. The rout
 | Duplicate route required | Whether a second assignment or route exists, and its owner |
 | Dependencies | Identity permissions, shared inputs, prerequisites |
 | Use case | Security or operational rationale (SEC01) |
+| Definition source | Built-in, ALZ-defined reused from the platform deployment, or security-owned copy (DD08), with the library version for ALZ-defined content |
 | Verification | How the diagnostic setting and ingestion are confirmed |
 
 **Initial inventory**
@@ -689,7 +726,7 @@ Investigations that need operational context query the operational workspace und
 |------|----------|------------|
 | Two workspaces | Two sets of access control, retention and monitoring configuration | Separate owners, no shared administration |
 | Duplicated assignments | More assignments and diagnostic settings, near the five-setting limit per resource | Inventory records dual routes; distinct names (MON03) |
-| Two policy lifecycles | Two consumers of the upstream library | Pinned versions, upgrade review, CI check (DD06, MON04) |
+| One library lifecycle, two assignment lifecycles | Security assignments depend on platform-deployed definitions | Platform pins versions, security pins its assignment source, platform notifies security before upgrades, upgrade review (DD06, MON04) |
 | Custom derivatives | Ongoing comparison with upstream | Keep to a minimum (DD05) |
 | Cross-team coordination | Naming, ownership boundaries, shared inputs | Ownership matrix, reviewer rights |
 
@@ -698,7 +735,7 @@ Investigations that need operational context query the operational workspace und
 | Figure | File | Purpose |
 |--------|------|---------|
 | L1 | [L1-logical-architecture.drawio](./diagrams/L1-logical-architecture.drawio) | Workspaces, subscriptions, management groups, Sentinel |
-| L2 | [L2-policy-repository-flow.drawio](./diagrams/L2-policy-repository-flow.drawio) | Repositories, ALZ Library, policy assignments, managed identities |
+| L2 | [L2-policy-repository-flow.drawio](./diagrams/L2-policy-repository-flow.drawio) | Repositories, ALZ Library, policy definitions and assignments, managed identities |
 | L3 | [L3-log-routing.drawio](./diagrams/L3-log-routing.drawio) | Routing of log sources to workspaces and their owners |
 
 ---
@@ -711,7 +748,7 @@ These items are validation checks for the pinned library version and Azure Polic
 
 | ID | Item | Impact if different |
 |----|------|---------------------|
-| A07 | `Deploy-Diag-LogsCat` and its `logAnalytics` parameter exist in the pinned library and reference the `allLogs` initiative. | Assignment reuse and configuration depend on the pinned version. |
+| A07 | `Deploy-Diag-LogsCat` and its `logAnalytics` parameter exist in the pinned library and reference the `allLogs` initiative. This was confirmed on 2026-11-07 for library commit `62cfa7f` (ALZ dependency 2026.11.0). | Assignment reuse and configuration depend on the pinned version. |
 | A08 | Each included resource type and category has a use case confirmed by the security team (SEC01). | Increased ingestion or gaps in coverage. |
 | A09 | The upstream Activity Log definition and the diagnostic setting policies use fixed setting names, or expose a name parameter. | Custom variant or direct diagnostic setting needed for the second route (DD05, MON02). |
 | A10 | The SQL auditing definition uses a fixed setting name (`SQLSecurityAuditEvents_...`). | Custom variant if both workspaces need SQL audit events (SEC05). |
@@ -719,6 +756,7 @@ These items are validation checks for the pinned library version and Azure Polic
 | A12 | Workspace permissions required by policy assignment identities for workspaces outside the assignment scope. | Failed remediation. |
 | A13 | Management group scopes where each workspace-dependent assignment is placed in the library architecture, including `Deploy-MDFC-DefSQL-AMA`. | Missing or duplicate assignments. |
 | A14 | The mechanism to disable library assignments in the platform repository for the module version. | Duplicate assignment of the same policy (DD07). |
+| A15 | How the library tooling resolves the placeholder management group in definition references (for example in `Deploy-MDFC-Config-H224`) when the security repository excludes definition deployment. | The assignment references a definition scope that does not exist, or needs a local override (DD08). |
 
 ## 5.2 Risks
 
@@ -733,6 +771,7 @@ These items are validation checks for the pinned library version and Azure Polic
 | R-07 | Security repository does not follow upstream updates for handed-over Defender assignments. | Medium | High | SEC04 pinned versions and review obligation. |
 | R-08 | Duplicate ingestion cost is higher than expected. | Medium | Low | A05 accepted; review per category (section 4.7). |
 | R-09 | Two teams interpret the ownership boundary differently. | Low | High | Ownership matrix, mandatory reviewers, inventory. |
+| R-10 | The security assignment references an ALZ-defined definition that is missing or different in the platform deployment, which stops or silently changes security collection. | Medium | High | DD08, DD06 notification, definition source in the inventory. |
 
 ## 5.3 Dependencies
 

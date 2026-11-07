@@ -8,41 +8,50 @@
           <mxGeometry x="40" y="20" width="900" height="30" as="geometry"/>
         </mxCell>
         <mxCell id="lib" value="Upstream sources (pinned versions)&#xa;ALZ Policy Library | built-in allLogs initiative | built-in definitions" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F2F2F2;strokeColor=#000000;fontFamily=Calibri;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="200" y="80" width="560" height="70" as="geometry"/>
+                  <mxGeometry x="260" y="60" width="560" height="70" as="geometry"/>
         </mxCell>
-        <mxCell id="prepo" value="&lt;b&gt;Platform repository&lt;/b&gt;&lt;br&gt;AVM ALZ module, shared default,&lt;br&gt;operational assignments" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#41738C;strokeColor=#000000;fontColor=#FFFFFF;fontFamily=Calibri;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="prepo" value="&lt;b&gt;Platform repository&lt;/b&gt;&lt;br&gt;AVM ALZ module, shared default,&lt;br&gt;definitions and initiatives,&lt;br&gt;operational assignments" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#41738C;strokeColor=#000000;fontColor=#FFFFFF;fontFamily=Calibri;fontSize=14;" vertex="1" parent="1">
           <mxGeometry x="40" y="210" width="300" height="90" as="geometry"/>
         </mxCell>
-        <mxCell id="srepo" value="&lt;b&gt;Security repository&lt;/b&gt;&lt;br&gt;Security assignments, curated resourceTypeList,&lt;br&gt;custom derivatives (if required)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#8C2350;strokeColor=#000000;fontColor=#FFFFFF;fontFamily=Calibri;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="620" y="210" width="300" height="90" as="geometry"/>
+                <mxCell id="srepo" value="&lt;b&gt;Security repository&lt;/b&gt;&lt;br&gt;Security assignments, curated resourceTypeList,&lt;br&gt;own definition copy (only if required)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#8C2350;strokeColor=#000000;fontColor=#FFFFFF;fontFamily=Calibri;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="740" y="210" width="300" height="90" as="geometry"/>
         </mxCell>
+                <mxCell id="defs" value="ALZ policy definitions and initiatives&#xa;(intermediate root, deployed once)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F2F2F2;strokeColor=#000000;fontFamily=Calibri;fontSize=14;" vertex="1" parent="1">
+                  <mxGeometry x="420" y="200" width="240" height="80" as="geometry"/>
+                </mxCell>
         <mxCell id="ppipe" value="Platform pipeline&#xa;(CI check, plan, apply)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#41738C;strokeWidth=2;fontFamily=Calibri;fontSize=14;" vertex="1" parent="1">
           <mxGeometry x="70" y="350" width="240" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="spipe" value="Security pipeline&#xa;(CI check, plan, apply)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#8C2350;strokeWidth=2;fontFamily=Calibri;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="650" y="350" width="240" height="60" as="geometry"/>
+          <mxGeometry x="770" y="350" width="240" height="60" as="geometry"/>
         </mxCell>
         <mxCell id="pass" value="Policy assignments with own managed identities&#xa;(unique names, distinct setting names)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F2F2F2;strokeColor=#41738C;fontFamily=Calibri;fontSize=14;" vertex="1" parent="1">
           <mxGeometry x="40" y="460" width="300" height="70" as="geometry"/>
         </mxCell>
         <mxCell id="sass" value="Policy assignments with own managed identities&#xa;(unique names, distinct setting names)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F2F2F2;strokeColor=#8C2350;fontFamily=Calibri;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="620" y="460" width="300" height="70" as="geometry"/>
+          <mxGeometry x="740" y="460" width="300" height="70" as="geometry"/>
         </mxCell>
         <mxCell id="ops" value="Operational workspace" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#41738C;strokeColor=#000000;fontColor=#FFFFFF;fontFamily=Calibri;fontSize=14;" vertex="1" parent="1">
           <mxGeometry x="90" y="580" width="200" height="90" as="geometry"/>
         </mxCell>
         <mxCell id="sec" value="Security workspace" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#8C2350;strokeColor=#000000;fontColor=#FFFFFF;fontFamily=Calibri;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="670" y="580" width="200" height="90" as="geometry"/>
+          <mxGeometry x="790" y="580" width="200" height="90" as="geometry"/>
         </mxCell>
         <mxCell id="inv" value="Routing inventory&#xa;one owner per route,&#xa;CI check on library change" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FAAA0A;strokeColor=#000000;fontFamily=Calibri;fontSize=14;" vertex="1" parent="1">
-          <mxGeometry x="380" y="320" width="200" height="110" as="geometry"/>
+          <mxGeometry x="440" y="320" width="200" height="110" as="geometry"/>
         </mxCell>
-        <mxCell id="e1" value="" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="lib" target="prepo">
+        <mxCell id="e1" value="definitions, initiatives and assignments (pinned)" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Calibri;fontSize=12;" edge="1" parent="1" source="lib" target="prepo">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
-        <mxCell id="e2" value="" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;" edge="1" parent="1" source="lib" target="srepo">
+                <mxCell id="e2" value="assignment files (own pinned version)" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Calibri;fontSize=12;" edge="1" parent="1" source="lib" target="srepo">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
+                <mxCell id="e11" value="deploys" style="endArrow=classic;html=1;strokeColor=#41738C;strokeWidth=1.5;fontFamily=Calibri;fontSize=12;" edge="1" parent="1" source="prepo" target="defs">
+                  <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e12" value="assigns" style="endArrow=classic;html=1;strokeColor=#8C2350;strokeWidth=1.5;fontFamily=Calibri;fontSize=12;" edge="1" parent="1" source="srepo" target="defs">
+                  <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
         <mxCell id="e3" value="" style="endArrow=classic;html=1;strokeColor=#41738C;strokeWidth=1.5;" edge="1" parent="1" source="prepo" target="ppipe">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>

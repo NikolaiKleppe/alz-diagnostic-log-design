@@ -7,10 +7,10 @@
         <mxCell id="title" value="C2 - Responsibility model" style="text;html=1;align=left;verticalAlign=middle;fontFamily=Calibri;fontSize=16;fontStyle=1;fontColor=#000000;" vertex="1" parent="1">
           <mxGeometry x="40" y="20" width="800" height="30" as="geometry"/>
         </mxCell>
-        <mxCell id="plat" value="&lt;b&gt;Platform team&lt;/b&gt;&lt;br&gt;&lt;br&gt;Operational workspace&lt;br&gt;Operational diagnostic settings&lt;br&gt;and policy assignments&lt;br&gt;Shared ALZ default destination&lt;br&gt;Platform repository and pipeline" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#41738C;strokeColor=#000000;fontColor=#FFFFFF;fontFamily=Calibri;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="plat" value="&lt;b&gt;Platform team&lt;/b&gt;&lt;br&gt;&lt;br&gt;Operational workspace&lt;br&gt;Operational diagnostic settings&lt;br&gt;and policy assignments&lt;br&gt;ALZ Library, policy definitions and&lt;br&gt;initiatives (deployed once)&lt;br&gt;Shared ALZ default destination&lt;br&gt;Platform repository and pipeline" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#41738C;strokeColor=#000000;fontColor=#FFFFFF;fontFamily=Calibri;fontSize=14;" vertex="1" parent="1">
           <mxGeometry x="40" y="100" width="300" height="240" as="geometry"/>
         </mxCell>
-        <mxCell id="secteam" value="&lt;b&gt;Security team&lt;/b&gt;&lt;br&gt;&lt;br&gt;Security workspace and Sentinel&lt;br&gt;Security diagnostic settings&lt;br&gt;and policy assignments&lt;br&gt;Defender for Cloud, SQL auditing,&lt;br&gt;Entra ID tenant logs&lt;br&gt;Security repository and pipeline" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#8C2350;strokeColor=#000000;fontColor=#FFFFFF;fontFamily=Calibri;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="secteam" value="&lt;b&gt;Security team&lt;/b&gt;&lt;br&gt;&lt;br&gt;Security workspace and Sentinel&lt;br&gt;Security diagnostic settings&lt;br&gt;and policy assignments&lt;br&gt;Defender for Cloud, SQL auditing,&lt;br&gt;Entra ID tenant logs&lt;br&gt;Own definition copy only if required&lt;br&gt;Security repository and pipeline" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#8C2350;strokeColor=#000000;fontColor=#FFFFFF;fontFamily=Calibri;fontSize=14;" vertex="1" parent="1">
           <mxGeometry x="560" y="100" width="300" height="240" as="geometry"/>
         </mxCell>
         <mxCell id="lib" value="Upstream ALZ Policy Library&#xa;and built-in policy" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F2F2F2;strokeColor=#000000;fontFamily=Calibri;fontSize=14;" vertex="1" parent="1">
@@ -25,10 +25,10 @@
         <mxCell id="e2" value="reviews / maintains" style="endArrow=classic;startArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Calibri;fontSize=12;" edge="1" parent="1" source="secteam" target="inv">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
-        <mxCell id="e3" value="consumes (pinned)" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Calibri;fontSize=12;" edge="1" parent="1" source="plat" target="lib">
+        <mxCell id="e3" value="deploys definitions (pinned)" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Calibri;fontSize=12;" edge="1" parent="1" source="plat" target="lib">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
-        <mxCell id="e4" value="consumes (pinned)" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Calibri;fontSize=12;" edge="1" parent="1" source="secteam" target="lib">
+        <mxCell id="e4" value="assigns (own pinned version)" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Calibri;fontSize=12;" edge="1" parent="1" source="secteam" target="lib">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
       </root>
