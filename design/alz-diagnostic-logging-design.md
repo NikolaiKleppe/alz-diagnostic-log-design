@@ -64,7 +64,7 @@ The security subscription is intentionally empty: ALZ deploys no security worksp
 | ID | Assumption |
 |----|------------|
 | A01 | The platform and security teams use separate Git repositories and separate deployment pipelines. |
-| A02 | Both repositories consume the ALZ Library at a pinned version and apply it through the AVM ALZ Terraform module (platform) or an equivalent Terraform configuration (security). |
+| A02 | The platform repository deploys the ALZ Library policy definitions and initiatives at a pinned version through the AVM ALZ Terraform module. The security repository creates its own policy assignments of those definitions through a Terraform configuration and does not deploy them again. |
 | A03 | The security workspace is created outside ALZ (for example through subscription vending) in the Security subscription beneath the Security management group. |
 | A04 | Microsoft Sentinel is enabled on the security workspace only. |
 | A05 | Both teams accept the additional ingestion cost of Activity Logs stored in two workspaces. |
@@ -105,7 +105,7 @@ The security subscription is intentionally empty: ALZ deploys no security worksp
 
 Two central Log Analytics workspaces are used. The **operational workspace** is owned by the platform team and receives platform observability and troubleshooting telemetry. The **security workspace** is owned by the security team, has Microsoft Sentinel enabled, and receives log sources with a documented security use case.
 
-Each team deploys its own diagnostic settings through its own repository and its own Azure Policy assignments. Both repositories consume the upstream ALZ Library and built-in Azure Policy definitions. Custom policy content is limited to documented, tracked derivatives. The rule that no policy assignment and no diagnostic setting is managed from both repositories is the central integrity constraint of the design. A reviewed routing inventory, enforced by a continuous integration (CI) check, makes the intended routing visible and detects upstream drift.
+Each team deploys its own diagnostic settings through its own repository and its own Azure Policy assignments. The platform team owns and deploys the upstream ALZ Library policy definitions and initiatives once, and the security repository only assigns them. Built-in Azure Policy definitions are used by both. Custom policy content is limited to documented, tracked derivatives. The rule that no policy assignment and no diagnostic setting is managed from both repositories is the central integrity constraint of the design. A reviewed routing inventory, enforced by a continuous integration (CI) check, makes the intended routing visible and detects upstream drift.
 
 ## 2.2 Requirements
 
@@ -130,7 +130,7 @@ Each team deploys its own diagnostic settings through its own repository and its
 | DD01 | Two central Log Analytics workspaces are used: operational and security. | 3.2 |
 | DD02 | The security workspace is placed in the Security subscription and is owned and administered by the security team. | 4.1 |
 | DD03 | Microsoft Sentinel is enabled on the security workspace only. | 4.1 |
-| DD04 | The platform and security teams deploy through independent repositories that consume the upstream ALZ Library. | 3.4 |
+| DD04 | The platform team owns and deploys the ALZ Library policy definitions and initiatives; the platform and security teams deploy their policy assignments through independent repositories. | 3.4 |
 | MON01 | The operational workspace is the shared ALZ default destination (`log_analytics_workspace_id`); security routing is explicit. | 4.3 |
 | SEC01 | The security workspace receives log sources that have a documented security use case. | 4.2 |
 | MON02 | Activity Logs are routed to both workspaces through separate routes, each owned by one repository. | 4.2 |
@@ -235,8 +235,8 @@ Permissions within a single workspace cannot provide that boundary without conti
 | Microsoft Sentinel | None | Owns |
 | Operational diagnostic settings and policy assignments | Owns (platform repository) | Reviews routing inventory |
 | Security diagnostic settings and policy assignments | Reviews routing inventory | Owns (security repository) |
-| ALZ Library version for the platform repository | Owns | None |
-| ALZ Library version for the security repository | None | Owns |
+| ALZ Library, policy definitions and initiatives (deployment and version) | Owns (platform repository) | Consumes; reviews changes that affect security assignments |
+| Custom policy variants needed for security (DD05) | Reviews | Owns (security repository) |
 | Routing inventory | Co-maintains (platform entries) | Co-maintains (security entries) and holds reviewer rights on all entries |
 
 Figure C2 shows the responsibility model.
@@ -245,12 +245,16 @@ Figure C2 shows the responsibility model.
 
 ## 3.4 Independent repositories
 
-The platform team manages operational diagnostic settings in the existing ALZ repository. The security team manages security diagnostic settings in a separate security repository. Both consume the upstream ALZ Library independently, which keeps the upstream library as the single source of policy definitions while each team selects and configures the assignments it owns. The ALZ Library is not copied into a shared derivative.
+The platform team owns and manages the ALZ Library and the policy definitions and initiatives it deploys. These are deployed once, from the existing ALZ repository, at the management group scope where the ALZ Library places them. The platform team also manages the operational diagnostic settings and policy assignments from this repository.
 
-**DECISION DD04: The platform and security teams deploy diagnostic policy assignments through independent repositories that each consume the upstream ALZ Library**
-- Independent security ownership requires that security assignments are not part of the platform deployment lifecycle.
-- Both repositories reuse the same upstream definitions, which limits custom policy maintenance.
-- The coordination mechanisms in sections 4.4 and 4.5 replace the coupling that a shared repository would provide.
+The security team manages security diagnostic settings from a separate security repository. This repository contains policy assignments only. The assignments reference the definitions and initiatives that the platform repository has already deployed, and the security team selects and configures the parameters, scopes and workspace destination of the assignments it owns. Policy definitions and initiatives are not deployed a second time, and the ALZ Library is not copied into a shared derivative.
+
+The exception is a custom variant of an upstream definition, which is needed when the upstream definition cannot meet a security requirement (DD05). A custom variant is deployed from the repository of the team that needs it, under a distinct name, so that no definition or initiative is deployed twice under the same name.
+
+**DECISION DD04: The platform team owns and deploys the ALZ Library policy definitions and initiatives, and the platform and security teams deploy their policy assignments through independent repositories**
+- Policy definitions and initiatives are deployed once, which avoids duplicate definitions, version divergence and a second library lifecycle to maintain.
+- Independent security ownership requires that security assignments are not part of the platform deployment lifecycle. Only the assignment, not the definition, is separated.
+- The security repository depends on the platform repository for the availability and version of the definitions it assigns. The coordination mechanisms in sections 4.4 and 4.5 manage this dependency and replace the coupling that a shared repository would provide.
 
 ☑ Security Impact: Prevents platform pipeline changes or platform administrators from altering or removing security diagnostic policy assignments. Establishes a security-controlled change path for security log collection.
 
