@@ -13,7 +13,7 @@
         <mxCell id="prepo" value="&lt;b&gt;Platform repository&lt;/b&gt;&lt;br&gt;AVM ALZ module, shared default,&lt;br&gt;definitions and initiatives,&lt;br&gt;operational assignments" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#41738C;strokeColor=#000000;fontColor=#FFFFFF;fontFamily=Calibri;fontSize=14;" vertex="1" parent="1">
           <mxGeometry x="40" y="210" width="300" height="90" as="geometry"/>
         </mxCell>
-                <mxCell id="srepo" value="&lt;b&gt;Security repository&lt;/b&gt;&lt;br&gt;Security assignments, curated resourceTypeList,&lt;br&gt;own definition copy (only if required)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#8C2350;strokeColor=#000000;fontColor=#FFFFFF;fontFamily=Calibri;fontSize=14;" vertex="1" parent="1">
+                <mxCell id="srepo" value="&lt;b&gt;Security repository&lt;/b&gt;&lt;br&gt;Security assignments (own files, azapi), curated resourceTypeList,&lt;br&gt;own definition copy (only if required)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#8C2350;strokeColor=#000000;fontColor=#FFFFFF;fontFamily=Calibri;fontSize=14;" vertex="1" parent="1">
           <mxGeometry x="740" y="210" width="300" height="90" as="geometry"/>
         </mxCell>
                 <mxCell id="defs" value="ALZ policy definitions and initiatives&#xa;(intermediate root, deployed once)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F2F2F2;strokeColor=#000000;fontFamily=Calibri;fontSize=14;" vertex="1" parent="1">
@@ -43,7 +43,7 @@
         <mxCell id="e1" value="definitions, initiatives and assignments (pinned)" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Calibri;fontSize=12;" edge="1" parent="1" source="lib" target="prepo">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
-                <mxCell id="e2" value="assignment files (own pinned version)" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Calibri;fontSize=12;" edge="1" parent="1" source="lib" target="srepo">
+                <mxCell id="e2" value="assignment content (recorded version, reference only)" style="endArrow=classic;html=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Calibri;fontSize=12;" edge="1" parent="1" source="lib" target="srepo">
           <mxGeometry relative="1" as="geometry"/>
         </mxCell>
                 <mxCell id="e11" value="deploys" style="endArrow=classic;html=1;strokeColor=#41738C;strokeWidth=1.5;fontFamily=Calibri;fontSize=12;" edge="1" parent="1" source="prepo" target="defs">
