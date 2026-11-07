@@ -1,0 +1,11 @@
+security_workspace_id    = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-security-law/providers/Microsoft.OperationalInsights/workspaces/law-security"
+security_contact_email   = "security@example.com"
+defender_sql_dcr_id      = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-security-mdfc/providers/Microsoft.Insights/dataCollectionRules/dcr-defender-sql"
+defender_sql_identity_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-security-mdfc/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-defender-sql-ama"
+
+# Optional overrides
+# location                            = "northeurope"
+# architecture_name                   = "alz_security"
+# root_management_group_name          = "alz"
+# platform_management_group_name      = "platform"
+# landing_zones_management_group_name = "landingzones"

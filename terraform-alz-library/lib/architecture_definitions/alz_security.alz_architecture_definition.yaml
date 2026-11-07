@@ -1,0 +1,25 @@
+name: alz_security
+
+# The management groups are created by the platform repository (exists: true), so this architecture only adds assignments.
+# Adjust the ids to match the deployed hierarchy.
+management_groups:
+  - id: alz
+    display_name: Azure Landing Zones
+    archetypes:
+      - security_root
+    parent_id: null
+    exists: true
+
+  - id: platform
+    display_name: Platform
+    archetypes:
+      - security_platform
+    parent_id: alz
+    exists: true
+
+  - id: landingzones
+    display_name: Landing zones
+    archetypes:
+      - security_landing_zones
+    parent_id: alz
+    exists: true
