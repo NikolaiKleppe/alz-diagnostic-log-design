@@ -19,9 +19,22 @@ locals {
     trimsuffix(f, local.policy_assignment_suffix) => file("${local.policy_assignment_dir}/${f}")
   }
 
-  policy_assignments = {
+  raw_policy_assignments = {
     for key, template in local.policy_assignment_templates :
     key => jsondecode(templatestring(template, local.template_vars))
+  }
+
+  policy_assignments = {
+    for key, assignment in local.raw_policy_assignments :
+    key => merge(assignment, {
+      properties = merge(assignment.properties, {
+        policyDefinitionId = replace(
+          assignment.properties.policyDefinitionId,
+          "/providers/Microsoft.Management/managementGroups/placeholder",
+          local.template_vars.root_scope
+        )
+      })
+    })
   }
 
   assigned_definition_ids = distinct([for pa in local.policy_assignments : pa.properties.policyDefinitionId])
