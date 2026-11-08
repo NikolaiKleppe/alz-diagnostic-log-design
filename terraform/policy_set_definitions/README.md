@@ -1,5 +1,5 @@
-# Custom policy set definitions
+# Custom definitions
 
-Policy set definition JSON files in this folder are deployed at the configured root management group by `main.policy_set_definitions.tf`. Give security-owned copies distinct names to avoid collisions with definitions deployed by the platform; ALZ `placeholder` scope references are resolved by Terraform.
+Hypothetical scenario where Security needs a custom policy set definition, either from the ALZ Library or a completely new one. This can be the case when the ALZ Library definitions deployed by the Platform team are out of date or do not cover specific security requirements.
 
 The design rationale for security-owned custom definitions is documented in [DD08: Dependency on platform-deployed definitions](../../design/alz-diagnostic-logging-design.md#dependency-on-platform-deployed-definitions).
