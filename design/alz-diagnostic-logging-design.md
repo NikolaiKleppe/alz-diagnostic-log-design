@@ -225,7 +225,6 @@ Permissions within a single workspace cannot provide that boundary without conti
 >- Security isolation, independent ownership and separately staffed or outsourced security operations require a distinct access boundary for security telemetry.
 >- Retention and lifecycle are set per workspace without dependencies between the teams.
 >- Operational data stays outside Sentinel billing scope; any duplicate ingestion is limited to sources needed by both teams.
-
 > - ☑ Security Impact: Prevents operational administrators and workloads from holding access to security telemetry through shared workspace permissions, and limits exposure of security data to the security team's access boundary. Establishes a separately administered data store for detection and investigation that remains under security control independent of platform changes.
 
 ## 3.3 Responsibilities
@@ -258,7 +257,6 @@ The exception is a definition or initiative that the security team needs but can
 >- Policy definitions and initiatives are deployed once, which avoids duplicate definitions, version divergence and a second library lifecycle to maintain.
 >- Independent security ownership requires that security assignments are not part of the platform deployment lifecycle. Only the assignment, not the definition, is separated.
 >- The security repository depends on the platform repository for the availability and version of the ALZ-defined definitions it assigns. This dependency is limited to library-defined content, and a security-owned copy under a distinct name removes it where the platform version does not fit (section 4.3). The coordination mechanisms in sections 4.4 and 4.5 manage the remaining dependency and replace the coupling that a shared repository would provide.
-
 > - ☑ Security Impact: Prevents platform pipeline changes or platform administrators from altering or removing security diagnostic policy assignments. Establishes a security-controlled change path for security log collection. The platform team still controls the definitions the assignments reference, which is why DD06 requires notification of the security team before library upgrades.
 
 ## 3.5 Alternatives considered
@@ -339,7 +337,6 @@ The operational workspace is the existing workspace in the management subscripti
 >- The Security management group and subscription are the upstream-aligned location for security infrastructure.
 >- Subscription-level ownership separates administrative control and billing from the platform.
 >- Independent ownership is a high-priority requirement (REQ-02).
-
 > - ☑ Security Impact: Prevents platform subscription administrators from inheriting control of the security workspace through subscription or management group role assignments. Establishes an administrative boundary aligned with the security team's responsibility.
 
 > **DECISION DD03: Microsoft Sentinel is enabled on the security workspace only**
@@ -365,7 +362,6 @@ Azure Monitor supports workspace-level RBAC, resource-context access and table-l
 >- Standing read access allows the SOC to query operational context without requiring an incident-specific access exception; the platform team retains administration of the operational workspace.
 >- Role assignments of policy managed identities follow the repository that owns the assignment, so a platform identity holds no write access to the security workspace.
 >- Exceptions to the security workspace access model are recorded in the routing inventory, where both teams can review them.
-
 > - ☑ Security Impact: Limits platform access to security telemetry to authorised exceptions and grants the SOC read access to operational telemetry without operational workspace administration. Role assignments and exceptions are reviewed in line with workspace ownership.
 
 ### Retention and lifecycle
@@ -383,7 +379,6 @@ Retention is defined per workspace and per data purpose, based on the following 
 > **DECISION SEC08: Retention is defined independently for the operational and the security workspace, and the security workspace distinguishes detection, investigation and forensic or compliance retention**
 >- Operational and security data have different retention, investigation and compliance needs (REQ-03).
 >- The data classes in this section give each log source an explicit retention purpose.
-
 > - ☑ Security Impact: Prevents loss of investigation and compliance evidence through short operational retention settings. Establishes retention governed by the security team for security data.
 
 ### Logical architecture
@@ -426,7 +421,6 @@ The lists are examples, not fixed exclusions. **[Assumption]** Each item require
 >- Sentinel billing applies to all data in the security workspace, so unused data generates cost without detection value (section 3.2).
 >- Resource-type-level or category-level inclusion with a recorded rationale keeps ingestion explicit.
 >- The documented use case is recorded in the routing inventory.
-
 > - ☑ Security Impact: Prevents noise that obscures detections and reduces investigation efficiency. Establishes a documented collection baseline that can be reviewed against detection and compliance needs.
 
 ### Resources that require logging in both workspaces
@@ -445,7 +439,6 @@ For the subscription Activity Log, the platform repository keeps the library ass
 >- Activity Logs support both operational and security use cases (REQ-10).
 >- Two Log Analytics destinations require two diagnostic settings (R03).
 >- One owner per route prevents competing management of the same setting.
-
 > - ☑ Security Impact: Prevents loss of control-plane audit data in the security workspace if the platform route changes or is removed. Establishes independently controlled retention of administrative activity evidence.
 
 ## 4.3 Azure Policy architecture
@@ -468,7 +461,6 @@ The default supplies one workspace ID per parameter. It does not discover worksp
 >- The default aligns with the ALZ intended architecture, so upstream guidance and updates apply directly (section 3.5).
 >- Security-specific routing is visible in the security repository and in the routing inventory.
 >- The default is not treated as the routing policy; the inventory is (MON04).
-
 > - ☑ Security Impact: Prevents unintended routing of operational volume to the Sentinel-billed workspace, and limits the security workspace to deliberately selected sources. Establishes explicit, reviewable security routing.
 
 ### Library use by the security repository
@@ -491,7 +483,6 @@ Findings that decided the comparison:
 >- Assignment content changes only through a security repository change. Built-in definitions are pinned with `definitionVersion`.
 >- The library is used as a reference. Each assignment file records the library version it is based on, and a CI comparison against that version replaces the review the tooling would otherwise surface (DD06).
 >- The decision is revisited when the number of assignments or management groups grows substantially, or when the security repository needs hierarchy handling that matches the platform repository. The alternative is kept as a documented proof of concept.
-
 > - ☑ Security Impact: Prevents security log collection from changing through library or tooling updates that the security team has not reviewed. Establishes a small, self-contained deployment path that the security team controls end to end.
 
 ### Independent assignments
@@ -523,7 +514,6 @@ Consequences:
 >- The initiative is maintained upstream and avoids a custom initiative (REQ-06, REQ-07).
 >- `resourceTypeList` limits ingestion to listed resource types (REQ-04).
 >- Each listed type has a documented use case (SEC01).
-
 > - ☑ Security Impact: Prevents gaps in security log collection for listed resource types by deploying all current and future categories of the category group. Establishes upstream-maintained collection coverage with an explicit resource type scope.
 
 #### Individual definitions
@@ -580,7 +570,6 @@ A security-owned copy follows these rules, in addition to those in the previous 
 >- A hard dependency on the platform upgrade schedule for security log collection is avoided where it matters.
 >- The copy is limited to ALZ-defined content. Built-in definitions need no copy.
 >- The cost of the copy is small because the security team assigns a small number of initiatives, and the platform team continues to own the rest of the library.
-
 > - ☑ Security Impact: Prevents the security team from being blocked by the platform team's library upgrade schedule, and prevents silent change in collection behaviour through a changed definition behind an unchanged name. Establishes a controlled, documented fallback for security-owned policy content.
 
 ### Versioning and drift
@@ -599,7 +588,6 @@ The security repository holds its own assignment files and records, in each file
 >- Library changes affect workspace-dependent assignments and the routing inventory.
 >- Security assignments depend on platform-deployed definitions. Notification before upgrade lets the security team review parameter changes, removed policies and category changes before they reach security log collection.
 >- Because the security repository does not run the library tooling, upstream changes reach it only through a reviewed change to its own files.
-
 > - ☑ Security Impact: Prevents uncontrolled changes to security log collection through upstream updates. Establishes reviewed, versioned security policy content, with the security team informed of every change to the definitions it assigns.
 
 Figure L2 shows the policy and repository flow.
@@ -622,13 +610,11 @@ Figure L2 shows the policy and repository flow.
 > **DECISION DD07: Every policy assignment and every diagnostic setting has exactly one owning repository, and no policy is assigned from both repositories**
 >- Diagnostic settings are child resources, but policy definitions can use fixed setting names; two assignments that manage the same name can overwrite each other regardless of the repository they are deployed from (REQ-09).
 >- Single ownership makes responsibility and change review unambiguous (REQ-05).
-
 > - ☑ Security Impact: Prevents one repository from silently overwriting or disabling security log routing configured by the other. Establishes a verifiable ownership boundary for security log collection.
 
 > **DECISION MON03: Diagnostic settings that coexist on a resource use distinct names per owning repository**
 >- A resource supports at most five diagnostic settings, and two Log Analytics destinations require two settings (section 4.2).
 >- Distinct names prevent overwrites; the policy definition must expose or support a distinct name (verified per definition, DD05).
-
 > - ☑ Security Impact: Prevents overwriting of the security diagnostic setting by an operational policy and the reverse. Establishes independent, coexisting settings per workspace.
 
 ### Defender for Cloud, SQL auditing and tenant-level logs
@@ -645,20 +631,17 @@ Implementation conditions:
 - Both assignments exist at several management group scopes; all scopes are covered.
 - The security team reviews the effect of platform library upgrades on the definitions it assigns (DD06).
 - This decision uses the current leaning and is to be confirmed (OQ02).
-
 > - ☑ Security Impact: Prevents Defender for Cloud export configuration from being changed by the platform team. Establishes security control over Defender for Cloud data and its destination.
 
 > **DECISION SEC05: `Deploy-AzSqlDb-Auditing` is owned by the security repository and SQL security audit events are routed to the security workspace**
 >- SQL security audit events are a security signal.
 >- SQL performance and troubleshooting categories remain in the operational workspace through operational policy.
 >- The upstream SQL auditing definition (version `1.0.2`) uses a fixed diagnostic setting name (`SQLSecurityAuditEvents_3d229c42-c7e7-4c97-9a99-ec0d0d8b86c1`). Single ownership avoids a collision; if both workspaces require SQL audit events, a custom variant with a distinct name is used (DD05).
-
 > - ☑ Security Impact: Prevents security audit events from being collected through operational configuration that security does not control. Establishes security-owned SQL audit collection.
 
 > **DECISION SEC06: Tenant-level logs such as Microsoft Entra ID are owned by the security repository and defined in Terraform**
 >- Tenant-level logs are not collected through Azure resource diagnostic policy and are security signals (section 4.2).
 >- Provisioning requires specific Microsoft Entra and provider permissions, which are held by the security team's pipeline identity.
-
 > - ☑ Security Impact: Prevents tenant identity logs from being missing from the security workspace or altered by the platform pipeline. Establishes security-controlled identity telemetry.
 
 ### Change review and deployment
@@ -711,7 +694,6 @@ The default workspace value answers which workspace an assignment gets. The rout
 >- A shared default supplies one destination and does not create duplicates or ownership (section 4.3).
 >- The failure mode of a missed assignment exists under either default, so a process control is required (section 3.5).
 >- The inventory provides the security team with assurance without routing all operational data to the security workspace.
-
 > - ☑ Security Impact: Prevents silently unrouted or misrouted security log sources after upstream changes. Establishes a reviewed, enforceable record of intended routing.
 
 Figure L3 shows the routing per log source.
