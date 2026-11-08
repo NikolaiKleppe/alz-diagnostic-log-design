@@ -179,6 +179,8 @@ Two central Log Analytics workspaces are used. The **operational workspace** is 
 
 Operational observability and security monitoring have distinct owners, access needs and retention drivers. A shared workspace separates them through permissions only, within one administration boundary, which requires continuous coordination between the teams and becomes harder when security operations are handled by a separate team or an external service provider. A dedicated security workspace provides a distinct access and ownership boundary and keeps operational data outside Sentinel pricing. SOC users and security CI/CD identities have read access to the operational workspace without administering it. The trade-off is that sources needed in both workspaces are ingested twice. The following sections define this conceptual model; the logical design describes its implementation.
 
+* Reference (community consensus): [The future of Sentinel in ALZ (follow on from 29th January 2025 Community Call)](https://github.com/Azure/Enterprise-Scale/discussions/1898)
+
 ## 3.1 Operational and security logging
 
 Diagnostic logging is divided by purpose of use, not by technical source.
