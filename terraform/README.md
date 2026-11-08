@@ -22,7 +22,7 @@ Terraform for the policy definitions and assignments owned by the **security rep
 
 ## Add or remove a policy
 
-- **Add:** create a matching `<name>.alz_policy_definition.json`, `<name>.alz_policy_set_definition.json`, or `<name>.alz_policy_assignment.json` in the corresponding folder. The JSON `name` must match the file name; assignment names must be at most 24 characters.
+- **Add:** create a `<name>.alz_policy_definition.json`, `<name>.alz_policy_set_definition.json`, or `<name>.alz_policy_assignment.json` in the corresponding folder. The file name is Terraform's key; the JSON `name` is the Azure resource name and may differ from the file name. Assignment resource names must be at most 24 characters.
 - **Remove:** delete the file. Terraform destroys dependent assignments and initiatives before their definitions.
 
 No Terraform change is needed in either case.
@@ -37,28 +37,35 @@ The assignment files carry no role information, as in the ALZ Library. Terraform
 
 Built-in definitions are read during plan. Custom definitions and initiatives are loaded from their JSON files and deployed at the root management group; ALZ `placeholder` references resolve to the configured root management group. The security-owned `Sec-Deploy-MDFC-Config_20240319` initiative includes the security-owned `Sec-Deploy-ASC-SecurityContacts` definition (DD08, A15).
 
+## Custom definitions
+
+| JSON file | Definition name | Purpose |
+|-----------|-----------------|---------|
+| `policy_definitions/Deploy-ASC-SecurityContacts.alz_policy_definition.json` | `Deploy-ASC-SecurityContacts` | Security-owned copy of the ALZ Library security contacts policy (DD08) |
+| `policy_set_definitions/Deploy-MDFC-Config_20240319.alz_policy_set_definition.json` | `Sec-Deploy-MDFC-Config_20240319` | Security-owned copy of the Defender for Cloud configuration initiative (DD08) |
+
 ## Assignments
 
-| File | Definition | Scope | Design |
-|------|------------|-------|--------|
-| `Sec-Diag-AllLogs` | Built-in `allLogs` initiative, curated `resourceTypeList` | Root | SEC02 |
-| `Sec-AzSqlDb-Auditing` | Built-in SQL auditing | Landing Zones | SEC05 |
-| `Sec-MDFC-Config` | Security-owned `Sec-Deploy-MDFC-Config_20240319` initiative | Root | SEC04 |
-| `Deploy-DefSQL-AMA-Plat` | Built-in Defender for SQL initiative | Platform | SEC04 |
-| `Deploy-DefSQL-AMA-LZ` | Built-in Defender for SQL initiative | Landing Zones | SEC04 |
+| JSON file | Assignment name | Definition | Scope | Design |
+|-----------|-----------------|------------|-------|--------|
+| `Deploy-Diag-LogsCat.alz_policy_assignment.json` | `Sec-Diag-AllLogs` | Built-in `allLogs` initiative, curated `resourceTypeList` | Root | SEC02 |
+| `Deploy-AzSqlDb-Auditing.alz_policy_assignment.json` | `Sec-AzSqlDb-Auditing` | Built-in SQL auditing policy | Root | SEC05 |
+| `Deploy-AzActivity-Log.alz_policy_assignment.json` | `Sec-AzActivity-Log` | Built-in Activity Log diagnostic settings policy | Root | MON02 |
+| `Deploy-MDFC-Config-H224.alz_policy_assignment.json` | `Sec-MDFC-Config` | Security-owned `Sec-Deploy-MDFC-Config_20240319` initiative | Root | SEC04 |
+| `Deploy-MDFC-DefSQL-AMA.alz_policy_assignment.json` | `Sec-MDFC-DefSQL-AMA` | Built-in Defender for SQL initiative | Root | SEC04 |
 
 - The `resourceTypeList` in `Sec-Diag-AllLogs` (Key Vault, Azure Firewall, Container Registry) is an example. The real list depends on OQ04 and A08.
-- The `Deploy-` prefix follows the ALZ Library naming convention. Scope suffixes keep the Defender for SQL assignment names unique. The platform repository must disable the library assignments `Deploy-AzSqlDb-Auditing`, `Deploy-MDFC-Config-H224` and `Deploy-MDFC-DefSQL-AMA` first.
-- The Activity Log second route (MON02) and Entra ID tenant logs (SEC06) are not part of this PoC.
-- Scopes are an assumption (A13): confirm where each assignment sits in the management group hierarchy.
+- The filenames retain the corresponding ALZ Library assignment names; the JSON `name` fields use `Sec-*` names for the security-owned assignments. The platform repository must disable the library assignments `Deploy-AzSqlDb-Auditing`, `Deploy-MDFC-Config-H224` and `Deploy-MDFC-DefSQL-AMA` before this repository takes over those policies.
+- All five assignments currently target the root management group. The Activity Log second route (MON02) is included; Entra ID tenant logs (SEC06) are not part of this PoC.
+- The root scope is an assumption (A13); confirm whether each assignment should target that management group.
 - The policy identities need write access to the security workspace (A12). The role assignments are created at the assignment scope only, so the workspace may need an additional role assignment.
 
 ## Usage
 
 ```powershell
-Copy-Item terraform.tfvars.example terraform.tfvars   # then edit the values
 terraform init
-terraform plan
+terraform plan -var-file="env/dev.tfvars"
 ```
 
+Edit the selected environment file first; `env/dev.tfvars` and `env/prod.tfvars` are provided.
 Authentication uses the standard `azapi` provider mechanisms (for example `az login` and `ARM_SUBSCRIPTION_ID`).
