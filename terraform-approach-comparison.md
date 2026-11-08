@@ -17,6 +17,13 @@ Two approaches for the security repository's policy assignments were prototyped 
 | Role assignments | The provider derives them automatically. The plain `azapi` implementation derives roles from external and local definitions (including initiative members) and creates role assignments at each policy assignment's scope. The PoC plan showed the same 20 roles across the five assignments |
 | Version pinning | The library approach pins through the library dependency. The plain approach has self-contained JSON; built-in definitions use Azure Policy `definitionVersion` (`1.*.*`), and the DD08 copies identify their ALZ Library source version in metadata. However, the assignment files do not yet record their library version and there is no CI comparison. The approach avoids an ALZ Library runtime dependency but does not yet provide automated upstream change tracking |
 
+## What the ALZ approach gave
+
+- **Library-native assignment management.** Assignments can be selected by name in archetypes and deployed across the configured hierarchy without defining each assignment as an `azapi_resource`.
+- **Centralized defaults and scope handling.** The ALZ provider and AVM module apply library defaults and resolve assignment scopes from the architecture and archetype configuration.
+- **Automatic role assignments.** Required roles are derived from policy definitions and created by the module.
+- **Upstream version pinning.** The library dependency records the version used by the PoC, making the source of library content explicit.
+
 ## What the library cost
 
 - More moving parts: the ALZ provider, the AVM module, a GitHub download at plan time (`.alzlib/`) and a custom library layout.
