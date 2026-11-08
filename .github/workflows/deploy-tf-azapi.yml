@@ -28,6 +28,7 @@ jobs:
       backend_subscription_id: c33f9068-3058-4127-a12d-d44382efa830
       backend_container_name: tfstate
       backend_key: diagnostic-log-design/tf-azapi.tfstate
+      terraform_version: 1.17.1
       run_apply: false
     secrets:
       azure_client_id: ${{ vars.AZURE_CLIENT_ID }}
