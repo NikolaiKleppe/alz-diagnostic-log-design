@@ -1,8 +1,8 @@
 # Terraform approach comparison: plain `azapi` or ALZ library
 
-Two proofs of concept for the security repository's policy assignments were built and planned against live Azure:
+Two approaches for the security repository's policy assignments were prototyped and planned against live Azure. The selected plain `azapi` approach has since been extended to deploy the security-owned definitions required by DD08:
 
-- **[terraform/](./terraform) (plain `azapi`):** one JSON file per assignment, read with `fileset()` and deployed with `azapi_resource` in a `for_each`. Required roles are derived from the policy definitions.
+- **[terraform/](./terraform) (plain `azapi`):** JSON files for assignments, custom policy definitions and custom initiatives are read with `fileset()` and deployed with `azapi_resource` in `for_each` resources. Required roles are derived from built-in, external and local policy definitions, including initiative members.
 - **[terraform-alz-library/](./terraform-alz-library):** a custom ALZ library that depends on `platform/alz` (pinned at `2026.11.0`), with standalone archetypes and an architecture with `exists: true` management groups. It is consumed through the ALZ provider and the `Azure/avm-ptn-alz/azurerm` module. The plan succeeded with 33 resources (5 assignments, 2 definitions, 20 role assignments and 6 helper resources).
 
 ## Recommendation
@@ -13,14 +13,14 @@ Two proofs of concept for the security repository's policy assignments were buil
 
 | Area | Finding |
 |------|---------|
-| Upstream reuse | Four of the five assignments reference built-in definitions, which exist in Azure regardless of the library. The library only supplied the assignment JSON wrapper and the parameter defaults |
-| Role assignments | The provider derives them automatically. The plain `azapi` approach does the same in about 30 lines (`locals.tf`, `main.tf`), and the plan gave the same roles (20 role assignments across the five assignments) |
-| Version pinning | The library approach pins through the library dependency. The plain approach has self-contained JSON, and built-in definitions are pinned with `definitionVersion` (`1.*.*`). Nothing changes unless the security team edits a file, which reduces R-02 and R-10 |
+| Upstream reuse | Four of the five assignments reference built-in definitions, which exist in Azure regardless of the library. `Sec-MDFC-Config` needs the DD08 security-owned copies in either approach; the library approach packages those copies in its custom library. The library also supplies assignment defaults and provider/module-driven scope and role handling |
+| Role assignments | The provider derives them automatically. The plain `azapi` implementation derives roles from external and local definitions (including initiative members) and creates role assignments at each policy assignment's scope. The PoC plan showed the same 20 roles across the five assignments |
+| Version pinning | The library approach pins through the library dependency. The plain approach has self-contained JSON; built-in definitions use Azure Policy `definitionVersion` (`1.*.*`), and the DD08 copies identify their ALZ Library source version in metadata. However, the assignment files do not yet record their library version and there is no CI comparison. The approach avoids an ALZ Library runtime dependency but does not yet provide automated upstream change tracking |
 
 ## What the library cost
 
 - More moving parts: the ALZ provider, the AVM module, a GitHub download at plan time (`.alzlib/`) and a custom library layout.
-- **The A15 limitation applies anyway.** `Deploy-MDFC-Config-H224` references the ALZ-defined initiative `Deploy-MDFC-Config_20240319`. It is not deployed in a security-only hierarchy, so the provider left `managementGroups/placeholder` in the definition ID and an apply would have failed. A renamed security-owned copy was needed (DD08), the same maintenance burden as without the library.
+- **The A15 limitation requires a security-owned copy in either approach.** The library PoC left `managementGroups/placeholder` in the ALZ-defined initiative reference because that initiative is not deployed in the security-only hierarchy. DD08 addresses this with renamed security-owned copies; the selected plain `azapi` implementation now deploys `Sec-Deploy-ASC-SecurityContacts` and `Sec-Deploy-MDFC-Config_20240319` at the root management group and rewrites placeholder references to that scope.
 - Upstream churn without a matching benefit, for example the April 2026 library changes (ADV01).
 
 ## When the library would pay off
@@ -32,8 +32,7 @@ Two proofs of concept for the security repository's policy assignments were buil
 
 | Caveat | Handling |
 |--------|----------|
-| `Sec-MDFC-Config` references the ALZ-defined initiative `Deploy-MDFC-Config_20240319` at the root scope, which is deployed by the platform repository (R-10). The library PoC showed this does not resolve without a definition in the hierarchy | To follow DD08, deploy a renamed security-owned copy of the initiative and its member definition `Deploy-ASC-SecurityContacts` from the `terraform/` repository (not yet implemented there). The library PoC contains the renamed copies in `terraform-alz-library/lib/policy_set_definitions` and `terraform-alz-library/lib/policy_definitions` |
-| Upstream tracking is lost. The upgrade step "review new, removed and changed assignments" is manual | Record the library tag in each JSON file and add a CI job that diffs the files against the pinned library tag |
+| Upstream tracking is manual. Assignment files do not record the ALZ Library version, and no CI comparison is implemented | Record the source library version in each assignment file and add a CI job that reports added, removed and changed assignments against that version |
 | Management group ids are variables, not read from an architecture file | Keep the variables aligned with the platform repository, and verify in the routing inventory check |
 
 ## Design impact
@@ -49,5 +48,4 @@ Applied in section 4.3 of the [design](./design/alz-diagnostic-logging-design.md
 
 ## Open follow-ups
 
-- Add the DD08 definition deployment (renamed initiative and member definition) to the plain `azapi` approach.
-- Add the CI comparison against the recorded library version, and record that version in each assignment file (DD06).
+- Record the ALZ Library source version in each assignment file and add a CI comparison against that version (DD06).
