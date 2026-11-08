@@ -11,7 +11,10 @@ Terraform for the policy definitions and assignments owned by the **security rep
 | `policy_assignments/*.alz_policy_assignment.json` | One file per assignment, same format as the ALZ Library |
 | `policy_definitions/*.alz_policy_definition.json` | One file per custom policy definition |
 | `policy_set_definitions/*.alz_policy_set_definition.json` | One file per custom initiative |
-| `locals.tf` | Reads and decodes every JSON file, resolves tokens, derives the required roles |
+| `locals.tf` | Shared template variables |
+| `locals.policy_assignments.tf` | Reads assignments, resolves definition IDs and derives required roles |
+| `locals.policy_definitions.tf` | Reads custom policy definitions |
+| `locals.policy_set_definitions.tf` | Reads custom policy set definitions |
 | `main.policy_assignments.tf` | `azapi_resource` for each assignment, plus definition reads and required role assignments |
 | `main.policy_definitions.tf` | `azapi_resource` for each custom policy definition |
 | `main.policy_set_definitions.tf` | `azapi_resource` for each custom initiative |
