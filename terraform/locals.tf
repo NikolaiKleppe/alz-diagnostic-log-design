@@ -9,3 +9,4 @@ locals {
     mdfc_export_resource_group_name = var.mdfc_export_resource_group_name
   }
 }
+# 
