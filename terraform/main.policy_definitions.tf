@@ -8,11 +8,4 @@ resource "azapi_resource" "policy_definition" {
   body = {
     properties = each.value.properties
   }
-
-  lifecycle {
-    precondition {
-      condition     = each.value.name == each.key
-      error_message = "The name in ${each.key}${local.policy_definition_suffix} (${each.value.name}) must match the file name."
-    }
-  }
 }

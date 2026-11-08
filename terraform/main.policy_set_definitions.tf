@@ -10,11 +10,4 @@ resource "azapi_resource" "policy_set_definition" {
   }
 
   depends_on = [azapi_resource.policy_definition]
-
-  lifecycle {
-    precondition {
-      condition     = each.value.name == each.key
-      error_message = "The name in ${each.key}${local.policy_set_definition_suffix} (${each.value.name}) must match the file name."
-    }
-  }
 }
