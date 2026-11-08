@@ -25,7 +25,7 @@ jobs:
       tfvars_file: terraform/env/prod/prod.tfvars
       backend_resource_group_name: rg-common-solutions-tfstate
       backend_storage_account_name: tfstatecommontc7iagly
-      backend_subscription_id: ${{ vars.TFSTATE_SUBSCRIPTION_ID }}
+      backend_subscription_id: c33f9068-3058-4127-a12d-d44382efa830
       backend_container_name: tfstate
       backend_key: diagnostic-log-design/tf-azapi.tfstate
       run_apply: false
