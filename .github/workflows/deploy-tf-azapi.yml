@@ -2,16 +2,16 @@ name: Deploy - Terraform Azure API
 
 on:
   workflow_dispatch:
-  # pull_request:
-  #   paths:
-  #     - 'terraform/**'
-  #     - .github/workflows/deploy-tf-azapi.yml
-  # push:
-  #   branches:
-  #     - main
-  #   paths:
-  #     - 'terraform/**'
-  #     - .github/workflows/deploy-tf-azapi.yml
+  pull_request:
+    paths:
+      - 'terraform/**'
+      - .github/workflows/deploy-tf-azapi.yml
+  push:
+    branches:
+      - main
+    paths:
+      - 'terraform/**'
+      - .github/workflows/deploy-tf-azapi.yml
 
 jobs:
   terraform:
