@@ -1,6 +1,10 @@
 locals {
-  policy_assignment_dir    = "${path.module}/policy_assignments"
-  policy_assignment_suffix = ".alz_policy_assignment.json"
+  policy_assignment_dir        = "${path.module}/policy_assignments"
+  policy_assignment_suffix     = ".alz_policy_assignment.json"
+  policy_definition_dir        = "${path.module}/policy_definitions"
+  policy_definition_suffix     = ".alz_policy_definition.json"
+  policy_set_definition_dir    = "${path.module}/policy_set_definitions"
+  policy_set_definition_suffix = ".alz_policy_set_definition.json"
 
   # Tokens that can be used in the JSON files as ${token}
   template_vars = {
@@ -24,6 +28,44 @@ locals {
     key => jsondecode(templatestring(template, local.template_vars))
   }
 
+  policy_definition_templates = {
+    for f in fileset(local.policy_definition_dir, "*${local.policy_definition_suffix}") :
+    trimsuffix(f, local.policy_definition_suffix) => replace(
+      file("${local.policy_definition_dir}/${f}"),
+      "/providers/Microsoft.Management/managementGroups/placeholder",
+      local.template_vars.root_scope
+    )
+  }
+
+  policy_definitions = {
+    for key, template in local.policy_definition_templates :
+    key => jsondecode(templatestring(template, local.template_vars))
+  }
+
+  policy_definition_ids = {
+    for key, definition in local.policy_definitions :
+    key => "${local.template_vars.root_scope}/providers/Microsoft.Authorization/policyDefinitions/${definition.name}"
+  }
+
+  policy_set_definition_templates = {
+    for f in fileset(local.policy_set_definition_dir, "*${local.policy_set_definition_suffix}") :
+    trimsuffix(f, local.policy_set_definition_suffix) => replace(
+      file("${local.policy_set_definition_dir}/${f}"),
+      "/providers/Microsoft.Management/managementGroups/placeholder",
+      local.template_vars.root_scope
+    )
+  }
+
+  policy_set_definitions = {
+    for key, template in local.policy_set_definition_templates :
+    key => jsondecode(templatestring(template, local.template_vars))
+  }
+
+  policy_set_definition_ids = {
+    for key, definition in local.policy_set_definitions :
+    key => "${local.template_vars.root_scope}/providers/Microsoft.Authorization/policySetDefinitions/${definition.name}"
+  }
+
   policy_assignments = {
     for key, assignment in local.raw_policy_assignments :
     key => merge(assignment, {
@@ -38,19 +80,68 @@ locals {
   }
 
   assigned_definition_ids = distinct([for pa in local.policy_assignments : pa.properties.policyDefinitionId])
+  external_assigned_definition_ids = [
+    for id in local.assigned_definition_ids : id
+    if !contains(concat(values(local.policy_definition_ids), values(local.policy_set_definition_ids)), id)
+  ]
 
-  # Member policy definitions of the assigned initiatives. concat() turns a missing (null) output into an empty list
-  member_definition_ids = distinct(compact(flatten([
-    for d in data.azapi_resource.assigned_definition : try(concat(d.output.members), [])
-  ])))
+  # Include members from both existing initiatives and local policy set definitions.
+  member_definition_ids = distinct(compact(flatten(concat(
+    [for d in data.azapi_resource.assigned_definition : try(tolist(d.output.members), [])],
+    [for definition in values(local.policy_set_definitions) : [
+      for member in definition.properties.policyDefinitions : member.policyDefinitionId
+    ]]
+  ))))
+  external_member_definition_ids = [
+    for id in local.member_definition_ids : id
+    if !contains(values(local.policy_definition_ids), id)
+  ]
 
-  # Roles required by the definition itself, or by all members for an initiative
+  assigned_definition_roles = merge(
+    {
+      for id, d in data.azapi_resource.assigned_definition :
+      id => try(tolist(d.output.roles), [])
+    },
+    {
+      for key, definition in local.policy_definitions :
+      local.policy_definition_ids[key] => try(tolist(definition.properties.policyRule.then.details.roleDefinitionIds), [])
+    }
+  )
+
+  assigned_definition_members = merge(
+    {
+      for id, d in data.azapi_resource.assigned_definition :
+      id => try(tolist(d.output.members), [])
+    },
+    {
+      for key, definition in local.policy_set_definitions :
+      local.policy_set_definition_ids[key] => [
+        for member in definition.properties.policyDefinitions : member.policyDefinitionId
+      ]
+    }
+  )
+
+  member_definition_roles = merge(
+    {
+      for id, d in data.azapi_resource.member_definition :
+      id => try(tolist(d.output.roles), [])
+    },
+    {
+      for key, definition in local.policy_definitions :
+      local.policy_definition_ids[key] => try(tolist(definition.properties.policyRule.then.details.roleDefinitionIds), [])
+    }
+  )
+
+  # Roles required by the definition itself, or by all members for an initiative.
   definition_role_guids = {
-    for id, d in data.azapi_resource.assigned_definition : id => distinct([
-      for r in compact(flatten([
-        try(concat(d.output.roles), []),
-        [for m in compact(try(concat(d.output.members), [])) : try(concat(data.azapi_resource.member_definition[m].output.roles), [])]
-      ])) : lower(regex("[^/]+$", r))
+    for id in local.assigned_definition_ids : id => distinct([
+      for r in concat(
+        try(local.assigned_definition_roles[id], []),
+        flatten([
+          for member_id in try(local.assigned_definition_members[id], []) :
+          try(local.member_definition_roles[member_id], [])
+        ])
+      ) : lower(regex("[^/]+$", r))
     ])
   }
 

@@ -9,7 +9,7 @@
   "properties": {
     "description": "Deploys Microsoft Defender for Cloud configuration, security contacts and continuous export to the security workspace. Decision SEC04. Replaces the library assignment Deploy-MDFC-Config-H224, which must be disabled in the platform repository first (DD07). The initiative is an ALZ-defined definition that must exist at the root scope (DD08, A15).",
     "displayName": "Security: deploy Microsoft Defender for Cloud configuration",
-    "policyDefinitionId": "/providers/Microsoft.Management/managementGroups/placeholder/providers/Microsoft.Authorization/policySetDefinitions/Deploy-MDFC-Config_20240319",
+    "policyDefinitionId": "/providers/Microsoft.Management/managementGroups/placeholder/providers/Microsoft.Authorization/policySetDefinitions/Sec-Deploy-MDFC-Config_20240319",
     "enforcementMode": "Default",
     "nonComplianceMessages": [
       {

@@ -1,6 +1,6 @@
 # The ALZ provider derives role assignments from the policy definitions. Without it, the same is done here.
 data "azapi_resource" "assigned_definition" {
-  for_each = toset(local.assigned_definition_ids)
+  for_each = toset(local.external_assigned_definition_ids)
 
   type        = strcontains(lower(each.key), "/policysetdefinitions/") ? "Microsoft.Authorization/policySetDefinitions@2023-04-01" : "Microsoft.Authorization/policyDefinitions@2023-04-01"
   resource_id = each.key
@@ -12,7 +12,7 @@ data "azapi_resource" "assigned_definition" {
 }
 
 data "azapi_resource" "member_definition" {
-  for_each = toset(local.member_definition_ids)
+  for_each = toset(local.external_member_definition_ids)
 
   type        = "Microsoft.Authorization/policyDefinitions@2023-04-01"
   resource_id = each.key
@@ -34,6 +34,11 @@ resource "azapi_resource" "policy_assignment" {
     properties = { for k, v in each.value.properties : k => v if k != "scope" }
   }
 
+  depends_on = [
+    azapi_resource.policy_definition,
+    azapi_resource.policy_set_definition
+  ]
+
   dynamic "identity" {
     for_each = try(each.value.identity, null) != null ? [each.value.identity] : []
     content {
@@ -42,10 +47,6 @@ resource "azapi_resource" "policy_assignment" {
   }
 
   lifecycle {
-    precondition {
-      condition     = each.value.name == each.key
-      error_message = "The name in ${each.key}${local.policy_assignment_suffix} (${each.value.name}) must match the file name."
-    }
     precondition {
       condition     = length(each.value.name) <= 24
       error_message = "Policy assignment names at management group scope are limited to 24 characters (${each.value.name})."

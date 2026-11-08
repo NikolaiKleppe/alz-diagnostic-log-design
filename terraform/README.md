@@ -2,21 +2,25 @@
 
 Selected approach (design decision DD09). The alternative that uses the ALZ provider and module is documented in [../terraform-alz-library/](../terraform-alz-library), and the comparison is in [../terraform-approach-comparison.md](../terraform-approach-comparison.md).
 
-Terraform for the policy assignments owned by the **security repository** in the design ([alz-diagnostic-logging-design.md](../design/alz-diagnostic-logging-design.md)). It follows the ALZ Library pattern: one JSON file per policy assignment in `policy_assignments/`, named `<name>.alz_policy_assignment.json`.
+Terraform for the policy definitions and assignments owned by the **security repository** in the design ([alz-diagnostic-logging-design.md](../design/alz-diagnostic-logging-design.md)). It follows the ALZ Library pattern: one JSON file per definition, initiative, and assignment in their corresponding folders.
 
 ## Structure
 
 | File | Purpose |
 |------|---------|
 | `policy_assignments/*.alz_policy_assignment.json` | One file per assignment, same format as the ALZ Library |
+| `policy_definitions/*.alz_policy_definition.json` | One file per custom policy definition |
+| `policy_set_definitions/*.alz_policy_set_definition.json` | One file per custom initiative |
 | `locals.tf` | Reads and decodes every JSON file, resolves tokens, derives the required roles |
-| `main.tf` | `azapi_resource` for each assignment and each required role assignment (both in a `for_each`) |
+| `main.policy_assignments.tf` | `azapi_resource` for each assignment, plus definition reads and required role assignments |
+| `main.policy_definitions.tf` | `azapi_resource` for each custom policy definition |
+| `main.policy_set_definitions.tf` | `azapi_resource` for each custom initiative |
 | `variables.tf` | Management groups, security workspace and shared Defender for SQL inputs |
 
 ## Add or remove a policy
 
-- **Add:** create a new `<name>.alz_policy_assignment.json` in `policy_assignments/`. The `name` must match the file name and be at most 24 characters.
-- **Remove:** delete the file. Terraform destroys the assignment and its role assignments.
+- **Add:** create a matching `<name>.alz_policy_definition.json`, `<name>.alz_policy_set_definition.json`, or `<name>.alz_policy_assignment.json` in the corresponding folder. The JSON `name` must match the file name; assignment names must be at most 24 characters.
+- **Remove:** delete the file. Terraform destroys dependent assignments and initiatives before their definitions.
 
 No Terraform change is needed in either case.
 
@@ -28,7 +32,7 @@ The JSON files can use these tokens, which are replaced before the file is decod
 
 The assignment files carry no role information, as in the ALZ Library. Terraform reads the assigned definition (and the member definitions of an initiative) and creates a role assignment at the assignment scope for each role in `roleDefinitionIds`. This follows what the ALZ provider does and avoids hardcoded roles drifting from the pinned definitions.
 
-The definitions are read during plan, so every referenced definition must already exist. Built-in definitions always do. `Sec-MDFC-Config` references the ALZ-defined initiative `Deploy-MDFC-Config_20240319` at the root scope, which the platform repository deploys (DD08, A15).
+Built-in definitions are read during plan. Custom definitions and initiatives are loaded from their JSON files and deployed at the root management group; ALZ `placeholder` references resolve to the configured root management group. The security-owned `Sec-Deploy-MDFC-Config_20240319` initiative includes the security-owned `Sec-Deploy-ASC-SecurityContacts` definition (DD08, A15).
 
 ## Assignments
 
@@ -36,7 +40,7 @@ The definitions are read during plan, so every referenced definition must alread
 |------|------------|-------|--------|
 | `Sec-Diag-AllLogs` | Built-in `allLogs` initiative, curated `resourceTypeList` | Root | SEC02 |
 | `Sec-AzSqlDb-Auditing` | Built-in SQL auditing | Landing Zones | SEC05 |
-| `Sec-MDFC-Config` | ALZ `Deploy-MDFC-Config_20240319` | Root | SEC04 |
+| `Sec-MDFC-Config` | Security-owned `Sec-Deploy-MDFC-Config_20240319` initiative | Root | SEC04 |
 | `Deploy-DefSQL-AMA-Plat` | Built-in Defender for SQL initiative | Platform | SEC04 |
 | `Deploy-DefSQL-AMA-LZ` | Built-in Defender for SQL initiative | Landing Zones | SEC04 |
 
