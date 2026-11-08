@@ -22,7 +22,7 @@
         "value": "${security_workspace_id}"
       }
     },
-    "scope": "${landing_zones_scope}",
+    "scope": "${root_scope}",
     "notScopes": []
   }
 }
