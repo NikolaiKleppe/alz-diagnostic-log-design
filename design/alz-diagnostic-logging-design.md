@@ -89,15 +89,15 @@ The security subscription is intentionally empty: ALZ deploys no security worksp
 
 | Ref | Source | Accessed |
 |-----|--------|----------|
-| R01 | [Microsoft Learn: Design a Log Analytics workspace architecture (operational and security data)](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/workspace-design#operational-and-security-data) | 2026-11-06 |
-| R02 | [Microsoft Learn: Create diagnostic settings at scale by using Azure Policy (log category groups)](https://learn.microsoft.com/en-us/azure/azure-monitor/data-collection/diagnostic-settings-policy) | 2026-11-06 |
-| R03 | [Microsoft Learn: Diagnostic settings in Azure Monitor (destinations and limits)](https://learn.microsoft.com/en-us/azure/azure-monitor/data-collection/diagnostic-settings) | 2026-11-06 |
-| R04 | [Azure Landing Zones Library](https://github.com/Azure/Azure-Landing-Zones-Library), `alz_policy_default_values.json` and the policy assignments listed in section 4.3 | 2026-11-06 |
-| R05 | Azure/Enterprise-Scale discussions [#1898](https://github.com/Azure/Enterprise-Scale/discussions/1898) and [#1978](https://github.com/Azure/Enterprise-Scale/discussions/1978) (security management group and subscription) | 2026-11-06 |
-| R06 | [Built-in initiative *Enable allLogs category group resource logging for supported resources to Log Analytics*](https://www.azadvertizer.net/azpolicyinitiativesadvertizer/0884adba-2312-4468-abeb-5422caed1038.html) (`0884adba-2312-4468-abeb-5422caed1038`) | 2026-11-06 |
+| R01 | [Microsoft Learn: Design a Log Analytics workspace architecture (operational and security data)](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/workspace-design#operational-and-security-data) | Nov 2026 |
+| R02 | [Microsoft Learn: Create diagnostic settings at scale by using Azure Policy (log category groups)](https://learn.microsoft.com/en-us/azure/azure-monitor/data-collection/diagnostic-settings-policy) | Nov 2026 |
+| R03 | [Microsoft Learn: Diagnostic settings in Azure Monitor (destinations and limits)](https://learn.microsoft.com/en-us/azure/azure-monitor/data-collection/diagnostic-settings) | Nov 2026 |
+| R04 | [Azure Landing Zones Library](https://github.com/Azure/Azure-Landing-Zones-Library), `alz_policy_default_values.json` and the policy assignments listed in section 4.3 | Nov 2026 |
+| R05 | Azure/Enterprise-Scale discussions [#1898](https://github.com/Azure/Enterprise-Scale/discussions/1898) and [#1978](https://github.com/Azure/Enterprise-Scale/discussions/1978) (security management group and subscription) | Nov 2026 |
+| R06 | [Built-in initiative *Enable allLogs category group resource logging for supported resources to Log Analytics*](https://www.azadvertizer.net/azpolicyinitiativesadvertizer/0884adba-2312-4468-abeb-5422caed1038.html) (`0884adba-2312-4468-abeb-5422caed1038`) | Nov 2026 |
 | R07 | Recommendation from a Microsoft Customer Success Manager | Not publicly accessible |
-| R08 | [Microsoft Learn: Extend Microsoft Sentinel across workspaces and tenants](https://learn.microsoft.com/en-us/azure/sentinel/extend-sentinel-across-workspaces-tenants) | 2026-11-07 |
-| R09 | [Microsoft Learn: Query across resources with Azure Monitor](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/cross-workspace-query) | 2026-11-07 |
+| R08 | [Microsoft Learn: Extend Microsoft Sentinel across workspaces and tenants](https://learn.microsoft.com/en-us/azure/sentinel/extend-sentinel-across-workspaces-tenants) | Nov 2026 |
+| R09 | [Microsoft Learn: Query across resources with Azure Monitor](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/cross-workspace-query) | Nov 2026 |
 
 ---
 
@@ -465,7 +465,7 @@ The default supplies one workspace ID per parameter. It does not discover worksp
 
 ### Library use by the security repository
 
-The security repository needs few assignments (about five in the initial scope). Two ways to use the ALZ Library for them were built as proofs of concept and planned against Azure on 2026-11-07 (ALZ library `2026.11.0`, ALZ provider `0.22.1`, AVM ALZ module `0.22.0`, `azapi` `2.13.0`). The full comparison is in [terraform-approach-comparison.md](../terraform-approach-comparison.md).
+The security repository needs few assignments (about five in the initial scope). Two ways to use the ALZ Library for them were built as proofs of concept and planned against Azure on Nov 2026 (ALZ library `2026.11.0`, ALZ provider `0.22.1`, AVM ALZ module `0.22.0`, `azapi` `2.13.0`). The full comparison is in [terraform-approach-comparison.md](../terraform-approach-comparison.md).
 
 | Option | Description | Assessment |
 |--------|-------------|------------|
@@ -554,7 +554,7 @@ The platform repository deploys the ALZ Library definitions and initiatives at i
 | The definition is defined by the ALZ Library and is identical in X and Y | The same custom definition in both versions | Reused from the platform deployment. | Assign and record the source in the inventory. |
 | The definition is defined by the ALZ Library and only exists in Y, or differs between X and Y | `Deploy-MDFC-Config_20240319` and its member `Deploy-ASC-SecurityContacts` for `Deploy-MDFC-Config-H224` | A missing definition fails the deployment. A changed parameter set fails the deployment. A changed behaviour behind an unchanged name changes collection without an error. | The security team deploys its own copy under a distinct name, from the definition JSON files in the security repository. |
 
-In the library version inspected on 2026-11-07 (commit `62cfa7f`, ALZ dependency 2026.11.0), the diagnostic and Defender assignments in section 4.3 all reference built-in definitions, except `Deploy-MDFC-Config-H224`. The `Deploy-Diagnostics-*` definitions that the library deploys are not referenced by any assignment or initiative in that version, and security does not build on them. The dependency on the platform deployment is therefore currently limited to the Defender for Cloud configuration (SEC04).
+In the library version inspected in Nov 2026 (commit `62cfa7f`, ALZ dependency 2026.11.0), the diagnostic and Defender assignments in section 4.3 all reference built-in definitions, except `Deploy-MDFC-Config-H224`. The `Deploy-Diagnostics-*` definitions that the library deploys are not referenced by any assignment or initiative in that version, and security does not build on them. The dependency on the platform deployment is therefore currently limited to the Defender for Cloud configuration (SEC04).
 
 A security-owned copy follows these rules, in addition to those in the previous section:
 
@@ -759,7 +759,7 @@ These items are validation checks for the pinned library version and Azure Polic
 
 | ID | Item | Impact if different |
 |----|------|---------------------|
-| A07 | `Deploy-Diag-LogsCat` and its `logAnalytics` parameter exist in the pinned library and reference the `allLogs` initiative. This was confirmed on 2026-11-07 for library commit `62cfa7f` (ALZ dependency 2026.11.0). | Assignment reuse and configuration depend on the pinned version. |
+| A07 | `Deploy-Diag-LogsCat` and its `logAnalytics` parameter exist in the pinned library and reference the `allLogs` initiative. This was confirmed in Nov 2026 for library commit `62cfa7f` (ALZ dependency 2026.11.0). | Assignment reuse and configuration depend on the pinned version. |
 | A08 | Each included resource type and category has a use case confirmed by the security team (SEC01). | Increased ingestion or gaps in coverage. |
 | A09 | The upstream Activity Log definition and the diagnostic setting policies use fixed setting names, or expose a name parameter. | Custom variant or direct diagnostic setting needed for the second route (DD05, MON02). |
 | A10 | The SQL auditing definition uses a fixed setting name (`SQLSecurityAuditEvents_...`). | Custom variant if both workspaces need SQL audit events (SEC05). |
@@ -767,7 +767,7 @@ These items are validation checks for the pinned library version and Azure Polic
 | A12 | Workspace permissions required by policy assignment identities for workspaces outside the assignment scope. | Failed remediation. |
 | A13 | Management group scopes where each workspace-dependent assignment is placed in the library architecture, including `Deploy-MDFC-DefSQL-AMA`. | Missing or duplicate assignments. |
 | A14 | The mechanism to disable library assignments in the platform repository for the module version. | Duplicate assignment of the same policy (DD07). |
-| A15 | How the library tooling resolves the placeholder management group in definition references (for example in `Deploy-MDFC-Config-H224`) when the security repository excludes definition deployment. Tested on 2026-11-07 with ALZ provider `0.22.1` and AVM ALZ module `0.22.0`: the placeholder is kept, so an apply would fail. This is why the security repository does not rely on the library tooling for ALZ-defined definitions (DD08, DD09). | The assignment references a definition scope that does not exist, or needs a local override (DD08). |
+| A15 | How the library tooling resolves the placeholder management group in definition references (for example in `Deploy-MDFC-Config-H224`) when the security repository excludes definition deployment. Tested in Nov 2026 with ALZ provider `0.22.1` and AVM ALZ module `0.22.0`: the placeholder is kept, so an apply would fail. This is why the security repository does not rely on the library tooling for ALZ-defined definitions (DD08, DD09). | The assignment references a definition scope that does not exist, or needs a local override (DD08). |
 
 ## 5.2 Risks
 
