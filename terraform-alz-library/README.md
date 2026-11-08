@@ -42,7 +42,7 @@ No assignment is declared in Terraform. The module creates one resource per assi
 
 ## Findings from the PoC plan
 
-- **Built-in definitions need no extra work.** Library assignments that reference built-in definitions resolve without the platform deployment, and the library defaults (`log_analytics_workspace_id`, `ama_*`) are applied to them.
+- **Built-in definitions need no extra work.** Library assignments that reference built-in definitions resolve without the platform deployment, and the library default for the security workspace is applied to them.
 - **ALZ-defined definitions do not resolve (verification item A15).** `Deploy-MDFC-Config-H224` references the ALZ-defined initiative `Deploy-MDFC-Config_20240319`. This hierarchy does not deploy it, so the provider leaves `managementGroups/placeholder` in the definition ID, and an apply would fail. This is why `Sec-MDFC-Config` and the renamed definitions are part of the library (DD08). The copies are byte-for-byte upstream (platform/alz 2026.11.0) apart from the name, the member reference and a `securityCopyOf` metadata note. Compare them with upstream on every library upgrade (DD05).
 - **Roles are derived by the provider.** The plan contains 20 policy role assignments (alz 8, platform 5, landingzones 7), matching the roles of the referenced definitions.
 - **Library assignments that are taken over keep their upstream names.** The platform repository must disable `Deploy-AzSqlDb-Auditing` and `Deploy-MDFC-DefSQL-AMA` before this repository assigns them (DD07). The `Sec-` prefixed assignments cannot collide with library names.

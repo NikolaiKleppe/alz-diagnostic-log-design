@@ -6,12 +6,14 @@ locals {
 
   # Library defaults (alz_policy_default_values.json) for the library assignments that the security repository takes over
   policy_default_values = {
-    log_analytics_workspace_id            = jsonencode({ value = var.security_workspace_id })
-    ama_mdfc_sql_data_collection_rule_id  = jsonencode({ value = var.defender_sql_dcr_id })
-    ama_user_assigned_managed_identity_id = jsonencode({ value = var.defender_sql_identity_id })
+    log_analytics_workspace_id = jsonencode({ value = var.security_workspace_id })
   }
 
-  defender_sql_region = { workspaceRegion = jsonencode({ value = var.location }) }
+  defender_sql_parameters = {
+    workspaceRegion                         = jsonencode({ value = var.location })
+    bringYourOwnDcr                         = jsonencode({ value = false })
+    bringYourOwnUserAssignedManagedIdentity = jsonencode({ value = false })
+  }
 }
 
 module "alz_security" {
@@ -45,12 +47,12 @@ module "alz_security" {
     }
     (var.platform_management_group_name) = {
       policy_assignments = {
-        Deploy-MDFC-DefSQL-AMA = { parameters = local.defender_sql_region }
+        Deploy-MDFC-DefSQL-AMA = { parameters = local.defender_sql_parameters }
       }
     }
     (var.landing_zones_management_group_name) = {
       policy_assignments = {
-        Deploy-MDFC-DefSQL-AMA = { parameters = local.defender_sql_region }
+        Deploy-MDFC-DefSQL-AMA = { parameters = local.defender_sql_parameters }
       }
     }
   }
