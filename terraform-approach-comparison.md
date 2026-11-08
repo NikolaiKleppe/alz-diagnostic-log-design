@@ -17,12 +17,12 @@ Two approaches for the security repository's policy assignments were prototyped 
 | Role assignments | The provider derives them automatically. The plain `azapi` implementation derives roles from external and local definitions (including initiative members) and creates role assignments at each policy assignment's scope. The PoC plan showed the same 20 roles across the five assignments |
 | Version pinning | The library approach pins through the library dependency. The plain approach has self-contained JSON; built-in definitions use Azure Policy `definitionVersion` (`1.*.*`), and the DD08 copies identify their ALZ Library source version in metadata. However, the assignment files do not yet record their library version and there is no CI comparison. The approach avoids an ALZ Library runtime dependency but does not yet provide automated upstream change tracking |
 
-## What the ALZ approach gave
+## What the `azapi` approach gave
 
-- **Library-native assignment management.** Assignments can be selected by name in archetypes and deployed across the configured hierarchy without defining each assignment as an `azapi_resource`.
-- **Centralized defaults and scope handling.** The ALZ provider and AVM module apply library defaults and resolve assignment scopes from the architecture and archetype configuration.
-- **Automatic role assignments.** Required roles are derived from policy definitions and created by the module.
-- **Upstream version pinning.** The library dependency records the version used by the PoC, making the source of library content explicit.
+- **Direct resource control.** The security repository deploys its assignments, custom policy definition and initiative from local JSON files without an ALZ provider, AVM module or downloaded library at plan time.
+- **A solution to the placeholder scope issue.** The security-owned DD08 definition and initiative are deployed at the root management group, with placeholder references rewritten to that scope.
+- **Derived role assignments.** Terraform reads roles from external and local policy definitions, including initiative members, and creates the required role assignments.
+- **Small, explicit configuration.** `fileset()` loads the JSON files, so assignments and custom definitions can be added or removed without changing Terraform resource blocks.
 
 ## What the library cost
 
