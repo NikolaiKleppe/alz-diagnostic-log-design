@@ -8,7 +8,7 @@
   },
   "properties": {
     "description": "Deploys a diagnostic setting with the allLogs category group to the security workspace for the resource types in resourceTypeList. Decision SEC02. Every listed resource type requires a documented security use case (SEC01) and an entry in the routing inventory.",
-    "displayName": "Security: allLogs resource logging to the security Log Analytics workspace",
+    "displayName": "Security: Enable allLogs category group resource logging for supported resources to Log Analytics",
     "policyDefinitionId": "/providers/Microsoft.Authorization/policySetDefinitions/0884adba-2312-4468-abeb-5422caed1038",
     "definitionVersion": "1.*.*",
     "enforcementMode": "Default",

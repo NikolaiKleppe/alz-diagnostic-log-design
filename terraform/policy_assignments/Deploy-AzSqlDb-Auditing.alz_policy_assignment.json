@@ -8,7 +8,7 @@
   },
   "properties": {
     "description": "Configures SQL server auditing events to flow to the security Log Analytics workspace. Decision SEC05. Replaces the library assignment Deploy-AzSqlDb-Auditing, which must be disabled in the platform repository first (DD07).",
-    "displayName": "Security: configure SQL servers to have auditing enabled to the security Log Analytics workspace",
+    "displayName": "Security: Configure SQL servers to have auditing enabled to Log Analytics workspace",
     "policyDefinitionId": "/providers/Microsoft.Authorization/policyDefinitions/25da7dfb-0666-4a15-a8f5-402127efd8bb",
     "definitionVersion": "1.*.*",
     "enforcementMode": "Default",

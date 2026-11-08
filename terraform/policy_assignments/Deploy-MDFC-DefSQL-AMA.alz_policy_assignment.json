@@ -8,7 +8,7 @@
   },
   "properties": {
     "description": "Microsoft Defender for SQL collects events from the agents and uses them to provide security alerts and tailored hardening tasks. Decision SEC04. Replaces the library assignment Deploy-MDFC-DefSQL-AMA at the Landing Zones scope, which must be disabled in the platform repository first (DD07).",
-    "displayName": "Security: enable Defender for SQL on SQL VMs and Arc-enabled SQL Servers (Landing Zones)",
+    "displayName": "Security: Enable Defender for SQL on SQL VMs and Arc-enabled SQL Servers",
     "policyDefinitionId": "/providers/Microsoft.Authorization/policySetDefinitions/de01d381-bae9-4670-8870-786f89f49e26",
     "definitionVersion": "1.*.*",
     "enforcementMode": "Default",
@@ -34,7 +34,7 @@
         "value": false
       }
     },
-    "scope": "${landing_zones_scope}",
+    "scope": "${root_scope}",
     "notScopes": []
   }
 }
