@@ -1,0 +1,9 @@
+security_workspace_id    = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-security-law/providers/Microsoft.OperationalInsights/workspaces/law-security"
+security_contact_email   = "security@example.com"
+
+# Optional overrides
+# location                            = "northeurope"
+# architecture_name                   = "alz_security"
+# root_management_group_name          = "alz"
+# platform_management_group_name      = "platform"
+# landing_zones_management_group_name = "landingzones"
