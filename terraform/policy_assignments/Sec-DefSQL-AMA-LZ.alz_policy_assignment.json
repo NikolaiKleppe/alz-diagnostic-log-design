@@ -25,19 +25,13 @@
         "value": "${security_workspace_id}"
       },
       "bringYourOwnDcr": {
-        "value": true
-      },
-      "dcrResourceId": {
-        "value": "${defender_sql_dcr_id}"
+        "value": false
       },
       "enableCollectionOfSqlQueriesForSecurityResearch": {
         "value": false
       },
       "bringYourOwnUserAssignedManagedIdentity": {
-        "value": true
-      },
-      "userAssignedIdentityResourceId": {
-        "value": "${defender_sql_identity_id}"
+        "value": false
       }
     },
     "scope": "${landing_zones_scope}",

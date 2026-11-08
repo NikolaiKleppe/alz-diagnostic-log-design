@@ -11,8 +11,6 @@ locals {
     security_workspace_id           = var.security_workspace_id
     security_contact_email          = var.security_contact_email
     mdfc_export_resource_group_name = var.mdfc_export_resource_group_name
-    defender_sql_dcr_id             = var.defender_sql_dcr_id
-    defender_sql_identity_id        = var.defender_sql_identity_id
   }
 
   # Raw file content is read separately because templatestring() does not accept a function call as its template
@@ -55,4 +53,3 @@ locals {
     }
   ]...)
 }
-

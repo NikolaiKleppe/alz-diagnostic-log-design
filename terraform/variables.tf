@@ -37,13 +37,3 @@ variable "mdfc_export_resource_group_name" {
   type        = string
   default     = "rg-mdfc-export-prod"
 }
-
-variable "defender_sql_dcr_id" {
-  description = "Resource ID of the Defender for SQL data collection rule (Sec-DefSQL-AMA-*). Shared input agreed with the platform team (D03)."
-  type        = string
-}
-
-variable "defender_sql_identity_id" {
-  description = "Resource ID of the user-assigned managed identity used by the AMA agent for Defender for SQL (Sec-DefSQL-AMA-*). Shared input agreed with the platform team (D03)."
-  type        = string
-}

@@ -22,7 +22,7 @@ No Terraform change is needed in either case.
 
 ## Tokens
 
-The JSON files can use these tokens, which are replaced before the file is decoded: `${default_location}`, `${root_scope}`, `${platform_scope}`, `${landing_zones_scope}`, `${security_workspace_id}`, `${security_contact_email}`, `${mdfc_export_resource_group_name}`, `${defender_sql_dcr_id}`, `${defender_sql_identity_id}`. To add a token, add it to `template_vars` in `locals.tf`.
+The JSON files can use these tokens, which are replaced before the file is decoded: `${default_location}`, `${root_scope}`, `${platform_scope}`, `${landing_zones_scope}`, `${security_workspace_id}`, `${security_contact_email}`, `${mdfc_export_resource_group_name}`. To add a token, add it to `template_vars` in `locals.tf`.
 
 ## Role assignments
 
