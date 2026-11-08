@@ -23,17 +23,17 @@ Two approaches for the security repository's policy assignments were prototyped 
 - **The A15 limitation requires a security-owned copy in either approach.** The library PoC left `managementGroups/placeholder` in the ALZ-defined initiative reference because that initiative is not deployed in the security-only hierarchy. DD08 addresses this with renamed security-owned copies; the selected plain `azapi` implementation now deploys `Sec-Deploy-ASC-SecurityContacts` and `Sec-Deploy-MDFC-Config_20240319` at the root management group and rewrites placeholder references to that scope.
 - Upstream churn without a matching benefit, for example the April 2026 library changes (ADV01).
 
+## When the library would pay off
+
+- The security repository grows to dozens of assignments across many management groups.
+- The provider should compute scopes, defaults and hierarchy exactly the way the platform repository does.
+
 ## What the `azapi` approach gave
 
 - **Direct resource control.** The security repository deploys its assignments, custom policy definition and initiative from local JSON files without an ALZ provider, AVM module or downloaded library at plan time.
 - **A solution to the placeholder scope issue.** The security-owned DD08 definition and initiative are deployed at the root management group, with placeholder references rewritten to that scope.
 - **Derived role assignments.** Terraform reads roles from external and local policy definitions, including initiative members, and creates the required role assignments.
 - **Small, explicit configuration.** `fileset()` loads the JSON files, so assignments and custom definitions can be added or removed without changing Terraform resource blocks.
-
-## When the library would pay off
-
-- The security repository grows to dozens of assignments across many management groups.
-- The provider should compute scopes, defaults and hierarchy exactly the way the platform repository does.
 
 ## Caveats of the plain `azapi` approach
 
