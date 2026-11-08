@@ -105,9 +105,7 @@ The security subscription is intentionally empty: ALZ deploys no security worksp
 
 ## 2.1 Design in brief
 
-Two central Log Analytics workspaces are used. The **operational workspace** is owned by the platform team and receives platform observability and troubleshooting telemetry. The **security workspace** is owned by the security team, has Microsoft Sentinel enabled, and receives log sources with a documented security use case.
-
-Each team deploys its own diagnostic settings through its own repository and its own Azure Policy assignments. The platform team owns and deploys the upstream ALZ Library policy definitions and initiatives once. The security repository assigns them from its own assignment files, which use the ALZ Library file format and are based on a recorded library version, and does not run the library tooling. Built-in Azure Policy definitions are used by both. Custom policy content is limited to documented, tracked derivatives. The rule that no policy assignment and no diagnostic setting is managed from both repositories is the central integrity constraint of the design. A reviewed routing inventory, enforced by a continuous integration (CI) check, makes the intended routing visible and detects upstream drift.
+Two central Log Analytics workspaces are used. The **operational workspace** is owned by the platform team and receives platform observability and troubleshooting telemetry. The **security workspace** is owned by the security team, has Microsoft Sentinel enabled, and receives log sources with a documented security use case. Each team deploys its own diagnostic settings through its own repository.
 
 ## 2.2 Requirements
 
