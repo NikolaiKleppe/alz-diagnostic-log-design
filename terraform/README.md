@@ -37,11 +37,11 @@ The definitions are read during plan, so every referenced definition must alread
 | `Sec-Diag-AllLogs` | Built-in `allLogs` initiative, curated `resourceTypeList` | Root | SEC02 |
 | `Sec-AzSqlDb-Auditing` | Built-in SQL auditing | Landing Zones | SEC05 |
 | `Sec-MDFC-Config` | ALZ `Deploy-MDFC-Config_20240319` | Root | SEC04 |
-| `Sec-DefSQL-AMA-Plat` | Built-in Defender for SQL initiative | Platform | SEC04 |
-| `Sec-DefSQL-AMA-LZ` | Built-in Defender for SQL initiative | Landing Zones | SEC04 |
+| `Deploy-DefSQL-AMA-Plat` | Built-in Defender for SQL initiative | Platform | SEC04 |
+| `Deploy-DefSQL-AMA-LZ` | Built-in Defender for SQL initiative | Landing Zones | SEC04 |
 
 - The `resourceTypeList` in `Sec-Diag-AllLogs` (Key Vault, Azure Firewall, Container Registry) is an example. The real list depends on OQ04 and A08.
-- The `Sec-` prefix keeps names distinct from the library assignments (DD07). The platform repository must disable the library assignments `Deploy-AzSqlDb-Auditing`, `Deploy-MDFC-Config-H224` and `Deploy-MDFC-DefSQL-AMA` first.
+- The `Deploy-` prefix follows the ALZ Library naming convention. Scope suffixes keep the Defender for SQL assignment names unique. The platform repository must disable the library assignments `Deploy-AzSqlDb-Auditing`, `Deploy-MDFC-Config-H224` and `Deploy-MDFC-DefSQL-AMA` first.
 - The Activity Log second route (MON02) and Entra ID tenant logs (SEC06) are not part of this PoC.
 - Scopes are an assumption (A13): confirm where each assignment sits in the management group hierarchy.
 - The policy identities need write access to the security workspace (A12). The role assignments are created at the assignment scope only, so the workspace may need an additional role assignment.
