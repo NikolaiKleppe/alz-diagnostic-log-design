@@ -196,7 +196,15 @@ Some sources serve both purposes. A source needed by both teams is sent to both 
 
 ## 3.2 Two-workspace model
 
-The conceptual model has two data stores and two owners (figure C1).
+Two central Log Analytics workspaces are used: an operational workspace owned by the platform team and a security workspace owned by the security team. The platform team and the security team have different responsibilities, consumers and retention needs for diagnostic data. Security isolation, independent ownership and separately staffed or outsourced security operations are high-priority drivers, and each requires an access boundary around security telemetry that is not shared with ordinary platform operations.
+
+Permissions within a single workspace cannot provide that boundary without continuous coordination between the teams. Retention and lifecycle are set per workspace, so separate workspaces remove the dependency between the teams on these settings. Sentinel pricing applies to all data in a Sentinel-enabled workspace; a dedicated security workspace therefore keeps operational data outside Sentinel billing. Only sources needed by both teams are ingested twice, which is accepted as the cost of the separation.
+
+> **DECISION DD01: Two central Log Analytics workspaces are used: an operational workspace owned by the platform team and a security workspace owned by the security team**
+>- Security isolation, independent ownership and separately staffed or outsourced security operations require a distinct access boundary for security telemetry.
+>- Retention and lifecycle are set per workspace without dependencies between the teams.
+>- Operational data stays outside Sentinel billing scope; any duplicate ingestion is limited to sources needed by both teams.
+> - ☑ Security Impact: Prevents operational administrators and workloads from holding access to security telemetry through shared workspace permissions, and limits exposure of security data to the security team's access boundary. Establishes a separately administered data store for detection and investigation that remains under security control independent of platform changes.
 
 ![Two-workspace model](diagrams/C1-conceptual-overview.svg)
 
@@ -216,16 +224,6 @@ The conceptual model has two data stores and two owners (figure C1).
 
 > Microsoft Learn (R01) states that dedicated workspaces for Azure Monitor and Microsoft Sentinel allow segregation of data ownership between operational and security teams, that all data in a Sentinel-enabled workspace is subject to Sentinel pricing, and that the choice depends on the organisation's security requirements and cost implications. The same source describes a single combined workspace with table-level RBAC as a valid alternative.
 The CAF default of one central workspace is therefore not wrong in general; this design applies the documented exception for RBAC and data ownership, because independent security ownership is a high-priority requirement.
-
-Two central Log Analytics workspaces are used: an operational workspace owned by the platform team and a security workspace owned by the security team. The platform team and the security team have different responsibilities, consumers and retention needs for diagnostic data. Security isolation, independent ownership and separately staffed or outsourced security operations are high-priority drivers, and each requires an access boundary around security telemetry that is not shared with ordinary platform operations.
-
-Permissions within a single workspace cannot provide that boundary without continuous coordination between the teams. Retention and lifecycle are set per workspace, so separate workspaces remove the dependency between the teams on these settings. Sentinel pricing applies to all data in a Sentinel-enabled workspace; a dedicated security workspace therefore keeps operational data outside Sentinel billing. Only sources needed by both teams are ingested twice, which is accepted as the cost of the separation.
-
-> **DECISION DD01: Two central Log Analytics workspaces are used: an operational workspace owned by the platform team and a security workspace owned by the security team**
->- Security isolation, independent ownership and separately staffed or outsourced security operations require a distinct access boundary for security telemetry.
->- Retention and lifecycle are set per workspace without dependencies between the teams.
->- Operational data stays outside Sentinel billing scope; any duplicate ingestion is limited to sources needed by both teams.
-> - ☑ Security Impact: Prevents operational administrators and workloads from holding access to security telemetry through shared workspace permissions, and limits exposure of security data to the security team's access boundary. Establishes a separately administered data store for detection and investigation that remains under security control independent of platform changes.
 
 ## 3.3 Responsibilities
 
