@@ -1,0 +1,34 @@
+name: Deploy - Terraform Azure API
+
+on:
+  workflow_dispatch:
+  # pull_request:
+  #   paths:
+  #     - 'terraform/**'
+  #     - .github/workflows/deploy-tf-azapi.yml
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - 'terraform/**'
+  #     - .github/workflows/deploy-tf-azapi.yml
+
+jobs:
+  terraform:
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+    uses: NikolaiKleppe/common-solutions/.github/workflows/terraform-deploy-template.yml@main
+    with:
+      terraform_working_directory: terraform
+      tfvars_file: terraform/env/prod/prod.tfvars
+      backend_resource_group_name: rg-common-solutions-tfstate
+      backend_storage_account_name: tfstatecommontc7iagly
+      backend_subscription_id: ${{ vars.TFSTATE_SUBSCRIPTION_ID }}
+      backend_container_name: tfstate
+      backend_key: diagnostic-log-design/tf-azapi.tfstate
+      run_apply: false
+    secrets:
+      azure_client_id: ${{ vars.AZURE_CLIENT_ID }}
+      azure_tenant_id: ${{ vars.AZURE_TENANT_ID }}
