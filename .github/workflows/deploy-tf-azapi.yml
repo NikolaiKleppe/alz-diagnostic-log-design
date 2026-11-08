@@ -22,7 +22,7 @@ jobs:
     uses: NikolaiKleppe/common-solutions/.github/workflows/terraform-deploy-template.yml@main
     with:
       terraform_working_directory: terraform
-      tfvars_file: terraform/env/prod.tfvars
+      tfvars_file: env/prod.tfvars
       backend_resource_group_name: rg-common-solutions-tfstate
       backend_storage_account_name: tfstatecommontc7iagly
       backend_subscription_id: c33f9068-3058-4127-a12d-d44382efa830
