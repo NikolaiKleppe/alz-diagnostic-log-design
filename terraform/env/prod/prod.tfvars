@@ -3,6 +3,6 @@ security_contact_email = "security@example.com"
 
 # Optional overrides
 default_location                  = "westeurope"
-root_management_group_id          = "alz"
-platform_management_group_id      = "platform"
-landing_zones_management_group_id = "landingzones"
+root_management_group_id          = "alz-root-2"
+platform_management_group_id      = "alz-platform-2"
+landing_zones_management_group_id = "alz-landingzones-2"
